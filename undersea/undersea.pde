@@ -3,6 +3,13 @@ static final int PIXELS = 10;
 // Number of jellies.
 static final int JELLIES = 6;
 
+Class[] visualizers = {
+  HueRotateVisualizer.class,
+  RandomVisualizer.class,
+  FlashVisualizer.class,
+  // add new visualizers here
+};
+
 // Represents a single pixel.
 class Pixel {
   int r, g, b;
@@ -83,7 +90,6 @@ class Jelly {
 Jelly[] jellies;
 float bpm = 120;
 String visualizerName;
-Class[] visualizers;
 int visualizerIdx = 0;
 
 // Picks next visualizer in the given direction (1: next, -1: prev).
@@ -126,12 +132,6 @@ void setup() {
     jellies[i] = new Jelly(i);
   }
   frameRate(50);
-
-  visualizers = new Class[]{
-    HueRotateVisualizer.class,
-    RandomVisualizer.class,
-    // add new visualizers here
-  };
 
   nextVisualizer(0);
 }

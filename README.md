@@ -12,4 +12,4 @@ Take a look at BlahVisualizer.pde files. Each Visualizer implements
 a process() method that takes BeatData and updates pixels[] array.
 
 To add a new visualizer, create a new FooVisualizer.pde file. Then
-add the class to the array in undersea.pde:setup().
+add the class to the array near the top of undersea.pde.
