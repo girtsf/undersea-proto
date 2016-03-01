@@ -57,8 +57,7 @@ class Jelly {
     mPixels = new color[PIXELS];
 
     for (int i = 0; i < PIXELS; i++) {
-      float h = i * 255 / PIXELS;
-      mPixels[i] = color(h, 255, 255);
+      mPixels[i] = #000000;  // black
     }
   }
 
@@ -141,21 +140,33 @@ void setup() {
   nextVisualizer(0);
 }
 
-int lastKeyPress = 0;
+int lastTap = 0;
+int firstTap = 0;
+int tapCount = 0;
 void keyPressed() {
   int now = millis();
   if (key == ' ') {
-    if (lastKeyPress != 0) {
-      int delta = now - lastKeyPress;
-      if (delta < 2000) {
-        // Only if the two taps are less than 2 seconds apart.
-        bpm = int(60 * 1000.0 / delta);
-        bpmTapOffset = 0;
-        BeatData bd = buildGlobalBeatData(0);
-        bpmTapOffset = -bd.beat_ticks;
-      }
+    if ((lastTap == 0) || ((now - lastTap) > 2000)) {
+      // If the last taps were more than 2s apart, reset the timer.
+      println("reset");
+      firstTap = now;
+      tapCount = 1;
+    } else {
+      tapCount++;
     }
-    lastKeyPress = now;
+
+    if (tapCount > 1) {
+      int delta = now - firstTap;
+      println("delta: " + delta + "  tapcount: " + tapCount);
+      float msPerTap = float(delta) / (tapCount - 1);
+      bpm = 60.0 * 1000.0 / msPerTap;
+      bpmTapOffset = 0;
+      BeatData bd = buildGlobalBeatData(0);
+      bpmTapOffset = -bd.beat_ticks;
+      println("offset: " + bpmTapOffset);
+    }
+
+    lastTap = now;
   } else if (key == ',') {
     bpm += 0.25;
   } else if (key == '.') {
