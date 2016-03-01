@@ -16,8 +16,8 @@ class Pixel {
 BeatData buildGlobalBeatData(int jitterTicks) {
   int beats_per_measure = 4;
   int beat_interval = int(32767 / (bpm / 60));
-  int ticks = millis() * 32767 / 1000 + jitterTicks;
-  int beats = ticks / beat_interval;
+  long ticks = (long)millis() * 32767 / 1000 + jitterTicks;
+  int beats = (int)(ticks / beat_interval);
   int measures = beats / beats_per_measure;
 
   BeatData bd = new BeatData();
@@ -25,7 +25,7 @@ BeatData buildGlobalBeatData(int jitterTicks) {
   bd.beat_in_measure = beats % beats_per_measure;
   bd.beat_interval = beat_interval;
   bd.measure = measures;
-  bd.beat_ticks = ticks % beat_interval;
+  bd.beat_ticks = (int)(ticks % beat_interval);
   return bd;
 }
 
