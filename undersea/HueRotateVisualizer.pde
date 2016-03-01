@@ -6,10 +6,9 @@ class HueRotateVisualizer extends Visualizer {
       randomRotate = int(random(0, 256));
     }
 
-    int beat = bd.measure * bd.beats_per_measure + bd.beat_in_measure;
     // Hue is determined by the cumulative beat counter. We increment it
     // by 4 on every beat.
-    int hue = beat % 64 * 4;
+    int hue = bd.beats % 64 * 4;
 
     for (int i = 0; i < pixels.length; i++) {
       int within_beat = pixels.length * bd.beat_ticks / bd.beat_interval;

@@ -26,4 +26,13 @@ class BeatData {
 
   // How many measures have passed since the start of this visualization pattern.
   int measure;
+
+  // Convenience fields: these can be calculated from the fields above, but are
+  // provided for convenience.
+
+  // How many beats have elapsed since the start of this pattern.
+  int beats;
+
+  // How many ticks have elapsed since the start of this pattern.
+  long ticks;
 }

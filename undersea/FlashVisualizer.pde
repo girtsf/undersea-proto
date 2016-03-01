@@ -1,7 +1,7 @@
 // Simple example visualizer that flashes once per beat.
 class FlashVisualizer extends Visualizer {
   int mPrevBeat = 0;
- 
+
   void process(BeatData bd) {
     color c;
     if (mPrevBeat != bd.beat_in_measure) {
@@ -12,7 +12,7 @@ class FlashVisualizer extends Visualizer {
     }
     mPrevBeat = bd.beat_in_measure;
     for (int i = 0; i < pixels.length; i++) {
-      pixels[i] = c; 
+      pixels[i] = c;
     }
   }
 }

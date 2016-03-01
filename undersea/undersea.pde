@@ -4,9 +4,10 @@ static final int PIXELS = 10;
 static final int JELLIES = 6;
 
 Class[] visualizers = {
-  HueRotateVisualizer.class,
-  RandomVisualizer.class,
-  FlashVisualizer.class,
+  PulseVisualizer.class, 
+  HueRotateVisualizer.class, 
+  RandomVisualizer.class, 
+  FlashVisualizer.class, 
   // add new visualizers here
 };
 
@@ -23,7 +24,7 @@ class Pixel {
 BeatData buildGlobalBeatData(int jitterTicks) {
   int beats_per_measure = 4;
   int beat_interval = int(32767 / (bpm / 60));
-  long ticks = (long)millis() * 32767 / 1000 + jitterTicks;
+  long ticks = (long) millis() * 32767 / 1000 + jitterTicks + bpmTapOffset;
   int beats = (int)(ticks / beat_interval);
   int measures = beats / beats_per_measure;
 
@@ -33,6 +34,8 @@ BeatData buildGlobalBeatData(int jitterTicks) {
   bd.beat_interval = beat_interval;
   bd.measure = measures;
   bd.beat_ticks = (int)(ticks % beat_interval);
+  bd.beats = beats;
+  bd.ticks = ticks;
   return bd;
 }
 
@@ -89,6 +92,7 @@ class Jelly {
 
 Jelly[] jellies;
 float bpm = 120;
+int bpmTapOffset = 0;
 String visualizerName;
 int visualizerIdx = 0;
 
@@ -113,7 +117,8 @@ void setVisualizer(Class visClass) {
       // hackery from http://stackoverflow.com/questions/31150337/
       java.lang.reflect.Constructor c = visClass.getDeclaredConstructor(Class.forName("undersea"));
       v = (Visualizer)c.newInstance(this);
-    } catch (Exception ex) {
+    } 
+    catch (Exception ex) {
       println("bleh");
     }
     if (v != null) {
@@ -145,6 +150,9 @@ void keyPressed() {
       if (delta < 2000) {
         // Only if the two taps are less than 2 seconds apart.
         bpm = int(60 * 1000.0 / delta);
+        bpmTapOffset = 0;
+        BeatData bd = buildGlobalBeatData(0);
+        bpmTapOffset = -bd.beat_ticks;
       }
     }
     lastKeyPress = now;
@@ -175,7 +183,6 @@ void drawStatus() {
   // status += " beat ticks:" + bd.beat_ticks;
   status += " fps: " + nf(frameRate, 3, 1);
   text(status, 10, 280);
-
 }
 
 // Main draw function. Draws ALL the jellies.
