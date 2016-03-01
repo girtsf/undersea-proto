@@ -168,7 +168,7 @@ void drawStatus() {
 
   fill(0, 255, 255);
   BeatData bd = buildGlobalBeatData(0);
-  String status = "BPM: " + bpm;
+  String status = "BPM: " + nf(bpm, 3, 1);
   status += " measure: " + bd.measure;
   status += " beat: " + bd.beat_in_measure;
   status += " visualizer: " + visualizerName;
