@@ -19,7 +19,7 @@ BeatData buildGlobalBeatData(int jitterTicks) {
   int ticks = millis() * 32767 / 1000 + jitterTicks;
   int beats = ticks / beat_interval;
   int measures = beats / beats_per_measure;
- 
+
   BeatData bd = new BeatData();
   bd.beats_per_measure = beats_per_measure;
   bd.beat_in_measure = beats % beats_per_measure;
@@ -35,35 +35,35 @@ class Jelly {
   final int mPos;
   // Emulated communication jitter in ticks.
   final int mJitter;
-  
+
   // Color values.
   color[] mPixels;
   // Current visualizer.
   Visualizer mVisualizer;
-  
+
   Jelly(int pos) {
-    mPos = pos;    
+    mPos = pos;
     mJitter = int(random(-500, 500));  // ~15ms
     mPixels = new color[PIXELS];
- 
+
     for (int i = 0; i < PIXELS; i++) {
       float h = i * 255 / PIXELS;
       mPixels[i] = color(h, 255, 255);
-    }    
+    }
   }
-  
+
   void setVisualizer(Visualizer v) {
     mVisualizer = v;
     mVisualizer.pixels = mPixels;
   }
-  
+
   // Preps beat data and calls the configured visualizer.
   BeatData prepBeatData() {
     BeatData bd = buildGlobalBeatData(mJitter);
     bd.hardware_id = mPos;
     return bd;
   }
-  
+
   // Draws this jelly to screen.
   void draw() {
     BeatData bd = prepBeatData();
@@ -84,7 +84,7 @@ Jelly[] jellies;
 float bpm = 120;
 String visualizerName;
 Class[] visualizers;
-int visualizerIdx = 0; 
+int visualizerIdx = 0;
 
 // Picks next visualizer in the given direction (1: next, -1: prev).
 void nextVisualizer(int dir) {
@@ -113,7 +113,7 @@ void setVisualizer(Class visClass) {
     if (v != null) {
       j.setVisualizer(v);
     }
-  }  
+  }
   visualizerName = visClass.getName();
   println("switched to visualizer: " + visualizerName);
 }
@@ -126,13 +126,13 @@ void setup() {
     jellies[i] = new Jelly(i);
   }
   frameRate(50);
-  
+
   visualizers = new Class[]{
     HueRotateVisualizer.class,
     RandomVisualizer.class,
     // add new visualizers here
   };
-  
+
   nextVisualizer(0);
 }
 
@@ -162,11 +162,11 @@ void keyPressed() {
 // Draws a status string. Or something.
 void drawStatus() {
   textSize(14);
-  
+
   fill(0, 0, 255);
   text("[SPACE] tap for bpm [,.] bpm up/down [↑↓] change visualizers", 10, 260);
-  
-  fill(0, 255, 255); 
+
+  fill(0, 255, 255);
   BeatData bd = buildGlobalBeatData(0);
   String status = "BPM: " + bpm;
   status += " measure: " + bd.measure;
@@ -175,7 +175,7 @@ void drawStatus() {
   // status += " beat ticks:" + bd.beat_ticks;
   status += " fps: " + nf(frameRate, 3, 1);
   text(status, 10, 280);
-  
+
 }
 
 // Main draw function. Draws ALL the jellies.
