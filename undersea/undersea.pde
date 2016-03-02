@@ -1,13 +1,15 @@
 // Number of pixels on each jelly.
 static final int PIXELS = 10;
 // Number of jellies.
-static final int JELLIES = 6;
+static final int JELLIES = 15;
+
+static final int JELLY_RADIUS = 90;
 
 Class[] visualizers = {
-  PulseVisualizer.class, 
-  HueRotateVisualizer.class, 
-  RandomVisualizer.class, 
-  FlashVisualizer.class, 
+  PulseVisualizer.class,
+  HueRotateVisualizer.class,
+  RandomVisualizer.class,
+  FlashVisualizer.class,
   // add new visualizers here
 };
 
@@ -39,10 +41,53 @@ BeatData buildGlobalBeatData(int jitterTicks) {
   return bd;
 }
 
+class Placer {
+  ArrayList<Integer> mPosX = new ArrayList<Integer>();
+  ArrayList<Integer> mPosY = new ArrayList<Integer>();
+
+  int x = -1;
+  int y = -1;
+
+  final int mMaxX, mMaxY, mRadius;
+
+  Placer(int maxX, int maxY, int radius) {
+    mMaxX = maxX;
+    mMaxY = maxY;
+    mRadius = radius;
+  }
+
+  float dist(int x, int y, int i) {
+    return sqrt(sq(x - mPosX.get(i)) + sq(y - mPosY.get(i)));
+  }
+
+  boolean placeNext() {
+    for (int attempt = 0; attempt < 100; attempt++) {
+      x = int(random(5 + mRadius, mMaxX - mRadius - 5));
+      y = int(random(5 + mRadius, mMaxY - mRadius - 5));
+      boolean ok = true;
+      for (int i = 0; i < mPosX.size(); i++) {
+        if (dist(x, y, i) < (mRadius + 5)) {
+          ok = false;
+          break;
+        }
+      }
+      if (ok) {
+        mPosX.add(x);
+        mPosY.add(y);
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
 // Represents a single jelly.
 class Jelly {
+  // Unique id.
+  final int mId;
   // Position on the screen.
-  final int mPos;
+  final int mPosX, mPosY;
+
   // Emulated communication jitter in ticks.
   final int mJitter;
 
@@ -51,8 +96,10 @@ class Jelly {
   // Current visualizer.
   Visualizer mVisualizer;
 
-  Jelly(int pos) {
-    mPos = pos;
+  Jelly(int id, int x, int y) {
+    mId = id;
+    mPosX = x;
+    mPosY = y;
     mJitter = int(random(-500, 500));  // ~15ms
     mPixels = new color[PIXELS];
 
@@ -69,7 +116,7 @@ class Jelly {
   // Preps beat data and calls the configured visualizer.
   BeatData prepBeatData() {
     BeatData bd = buildGlobalBeatData(mJitter);
-    bd.hardware_id = mPos;
+    bd.hardware_id = mId;
     return bd;
   }
 
@@ -81,10 +128,11 @@ class Jelly {
     // How big each slice is (in radians).
     float sliceSize = 2 * PI / mPixels.length;
     // Rotate each jelly slightly.
-    float offset = sliceSize / 3 * mPos;
+    float offset = sliceSize / 3 * mId;
     for (int i = 0; i < mPixels.length; i++) {
       fill(mPixels[i]);
-      arc(70 + 100 * mPos, 70, 90, 90, offset + sliceSize * i, offset + sliceSize * (i + 1), PIE);
+      arc(mPosX, mPosY, JELLY_RADIUS, JELLY_RADIUS,
+        offset + sliceSize * i, offset + sliceSize * (i + 1), PIE);
     }
   }
 }
@@ -116,7 +164,7 @@ void setVisualizer(Class visClass) {
       // hackery from http://stackoverflow.com/questions/31150337/
       java.lang.reflect.Constructor c = visClass.getDeclaredConstructor(Class.forName("undersea"));
       v = (Visualizer)c.newInstance(this);
-    } 
+    }
     catch (Exception ex) {
       println("bleh");
     }
@@ -130,10 +178,14 @@ void setVisualizer(Class visClass) {
 
 void setup() {
   colorMode(HSB, 255);
-  size(640, 300);
+  size(800, 600);
+  Placer placer = new Placer(width, height - 50, JELLY_RADIUS);
   jellies = new Jelly[JELLIES];
   for (int i = 0; i < JELLIES; i++) {
-    jellies[i] = new Jelly(i);
+    if (!placer.placeNext()) {
+      throw new RuntimeException("failed to place jelly. reduce count?");
+    }
+    jellies[i] = new Jelly(i, placer.x, placer.y);
   }
   frameRate(50);
 
@@ -183,7 +235,7 @@ void drawStatus() {
   textSize(14);
 
   fill(0, 0, 255);
-  text("[SPACE] tap for bpm [,.] bpm up/down [↑↓] change visualizers", 10, 260);
+  text("[SPACE] tap for bpm [,.] bpm up/down [↑↓] change visualizers", 10, height - 40);
 
   fill(0, 255, 255);
   BeatData bd = buildGlobalBeatData(0);
@@ -193,7 +245,7 @@ void drawStatus() {
   status += " visualizer: " + visualizerName;
   // status += " beat ticks:" + bd.beat_ticks;
   status += " fps: " + nf(frameRate, 3, 1);
-  text(status, 10, 280);
+  text(status, 10, height - 20);
 }
 
 // Main draw function. Draws ALL the jellies.
