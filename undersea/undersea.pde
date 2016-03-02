@@ -10,6 +10,7 @@ Class[] visualizers = {
   HueRotateVisualizer.class,
   RandomVisualizer.class,
   FlashVisualizer.class,
+  PrimeVisualizer.class,
   // add new visualizers here
 };
 

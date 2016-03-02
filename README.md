@@ -16,7 +16,5 @@ add the class to the array near the top of undersea.pde.
 
 # Ideas
 
-* (from rpearl) relatively-prime fades. each k-th node pulses for an interval
-  of (kth prime) beats.
 * manual proximity. the VJ UI would have a quick way to light up each node
   and keys to assign some sort of 1D or 2D order.
