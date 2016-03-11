@@ -8,15 +8,15 @@ class PrimeVisualizer extends Visualizer {
 
   void process(BeatData bd) {
     color c = #000000;  // black
-    if (mPrevBeat != bd.beat_in_measure) {
+    if (mPrevBeat != bd.beatInMeasure) {
       // We haven't seen this beat yet. Flash if we are on a kth prime.
-      int myPrime = PRIMES[bd.hardware_id % PRIMES.length];
+      int myPrime = PRIMES[bd.hardwareId % PRIMES.length];
       if ((bd.beats % myPrime) == 0) {
         int hue = (bd.beats * 2281) % 255;
         c = color(hue, 255, 255);
       }
 
-      mPrevBeat = bd.beat_in_measure;
+      mPrevBeat = bd.beatInMeasure;
       for (int i = 0; i < pixels.length; i++) {
         pixels[i] = c;
       }

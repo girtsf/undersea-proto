@@ -11,7 +11,7 @@ class HueRotateVisualizer extends Visualizer {
     int hue = bd.beats % 64 * 4;
 
     for (int i = 0; i < pixels.length; i++) {
-      int within_beat = pixels.length * bd.beat_ticks / bd.beat_interval;
+      int within_beat = pixels.length * bd.beatTicks / bd.beatInterval;
       // println("wb: " + within_beat + " bt: " + bd.beat_ticks + " bi: " + bd.beat_interval);
       int r = (i + within_beat + randomRotate) % pixels.length;
       int b = 155 + 100 * r / pixels.length;

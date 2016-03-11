@@ -4,13 +4,13 @@ class FlashVisualizer extends Visualizer {
 
   void process(BeatData bd) {
     color c;
-    if (mPrevBeat != bd.beat_in_measure) {
+    if (mPrevBeat != bd.beatInMeasure) {
       // We haven't seen this beat yet. Flash!
       c = #ffffff;  // white
     } else {
       c = #000000;  // black
     }
-    mPrevBeat = bd.beat_in_measure;
+    mPrevBeat = bd.beatInMeasure;
     for (int i = 0; i < pixels.length; i++) {
       pixels[i] = c;
     }

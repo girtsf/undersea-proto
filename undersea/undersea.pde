@@ -25,18 +25,18 @@ class Pixel {
 };
 
 BeatData buildGlobalBeatData(int jitterTicks) {
-  int beats_per_measure = 4;
-  int beat_interval = int(32767 / (bpm / 60));
+  int beatsPerMeasure = 4;
+  int beatInterval = int(32767 / (bpm / 60));
   long ticks = (long) millis() * 32767 / 1000 + jitterTicks + bpmTapOffset;
-  int beats = (int)(ticks / beat_interval);
-  int measures = beats / beats_per_measure;
+  int beats = (int)(ticks / beatInterval);
+  int measures = beats / beatsPerMeasure;
 
   BeatData bd = new BeatData();
-  bd.beats_per_measure = beats_per_measure;
-  bd.beat_in_measure = beats % beats_per_measure;
-  bd.beat_interval = beat_interval;
+  bd.beatsPerMeasure = beatsPerMeasure;
+  bd.beatInMeasure = beats % beatsPerMeasure;
+  bd.beatInterval = beatInterval;
   bd.measure = measures;
-  bd.beat_ticks = (int)(ticks % beat_interval);
+  bd.beatTicks = (int)(ticks % beatInterval);
   bd.beats = beats;
   bd.ticks = ticks;
   return bd;
@@ -117,7 +117,7 @@ class Jelly {
   // Preps beat data and calls the configured visualizer.
   BeatData prepBeatData() {
     BeatData bd = buildGlobalBeatData(mJitter);
-    bd.hardware_id = mId;
+    bd.hardwareId = mId;
     return bd;
   }
 
@@ -215,7 +215,7 @@ void keyPressed() {
       bpm = 60.0 * 1000.0 / msPerTap;
       bpmTapOffset = 0;
       BeatData bd = buildGlobalBeatData(0);
-      bpmTapOffset = -bd.beat_ticks;
+      bpmTapOffset = -bd.beatTicks;
       println("offset: " + bpmTapOffset);
     }
 
@@ -242,7 +242,7 @@ void drawStatus() {
   BeatData bd = buildGlobalBeatData(0);
   String status = "BPM: " + nf(bpm, 3, 1);
   status += " measure: " + bd.measure;
-  status += " beat: " + bd.beat_in_measure;
+  status += " beat: " + bd.beatInMeasure;
   status += " visualizer: " + visualizerName;
   // status += " beat ticks:" + bd.beat_ticks;
   status += " fps: " + nf(frameRate, 3, 1);

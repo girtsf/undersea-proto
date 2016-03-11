@@ -22,7 +22,7 @@ class PulseVisualizer extends Visualizer {
       if ((dir == 0) && (int(random(0, 2)) == 0)) {
         // One in N chance to fire on a beat. 
         dir = 1;
-        endTicks = bd.ticks + bd.beat_interval * BEATS_UP;
+        endTicks = bd.ticks + bd.beatInterval * BEATS_UP;
         // Pick a random-ish hue, synchronized to current beat value.
         hue = (bd.beats * 2281) % 255;
       }
@@ -31,10 +31,10 @@ class PulseVisualizer extends Visualizer {
     if (dir > 0) {
       // Going up.
       if (bd.ticks > endTicks) {
-        endTicks = bd.ticks + bd.beat_interval * BEATS_DOWN;
+        endTicks = bd.ticks + bd.beatInterval * BEATS_DOWN;
         dir = -1;
       } else {
-        int b = (int)(255 * (endTicks - bd.ticks) / (bd.beat_interval * BEATS_UP)); 
+        int b = (int)(255 * (endTicks - bd.ticks) / (bd.beatInterval * BEATS_UP)); 
         setAll(color(hue, 255, b));
       }
     }
@@ -44,7 +44,7 @@ class PulseVisualizer extends Visualizer {
         dir = 0;
         setAll(#000000);
       } else {
-        int b = (int)(255 * (endTicks - bd.ticks) / (bd.beat_interval * BEATS_DOWN)); 
+        int b = (int)(255 * (endTicks - bd.ticks) / (bd.beatInterval * BEATS_DOWN)); 
         setAll(color(hue, 255, b));
       }
     }

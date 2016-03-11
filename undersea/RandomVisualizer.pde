@@ -3,14 +3,14 @@ class RandomVisualizer extends Visualizer {
   int hue = 0;
 
   void process(BeatData bd) {
-    if (bd.beat_in_measure == mPrevBeat) {
+    if (bd.beatInMeasure == mPrevBeat) {
       // Only change the color once per beat. If we
       // are still on same beat, then return.
       return;
     }
 
     hue = int(random(0, 255));
-    mPrevBeat = bd.beat_in_measure;
+    mPrevBeat = bd.beatInMeasure;
     for (int i = 0; i < pixels.length; i++) {
       // Assign random brightness to each pixel. Keep the random
       // range constrained to medium to bright.
