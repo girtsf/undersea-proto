@@ -36,4 +36,9 @@ class BeatData {
 
   // How many ticks have elapsed since the start of this pattern.
   long ticks;
+  
+  // ---------------------------------------------------------------------------
+  // Pattern specific data: the interface for this might change, but for now, assume
+  // that patternData contains 8 values, each [0, 255].
+  int patternData[];
 }

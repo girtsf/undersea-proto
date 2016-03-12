@@ -1,16 +1,19 @@
+import controlP5.*;
+
 // Number of pixels on each jelly.
 static final int PIXELS = 10;
 // Number of jellies.
 static final int JELLIES = 15;
 
-static final int JELLY_RADIUS = 90;
+static final int JELLY_RADIUS = 70;
 
 Class[] visualizers = {
-  PulseVisualizer.class,
-  HueRotateVisualizer.class,
-  RandomVisualizer.class,
-  FlashVisualizer.class,
+  PulseVisualizer.class, 
+  HueRotateVisualizer.class, 
+  RandomVisualizer.class, 
+  FlashVisualizer.class, 
   PrimeVisualizer.class,
+  SingleColorVisualizer.class,
   // add new visualizers here
 };
 
@@ -39,6 +42,8 @@ BeatData buildGlobalBeatData(int jitterTicks) {
   bd.beatTicks = (int)(ticks % beatInterval);
   bd.beats = beats;
   bd.ticks = ticks;
+  bd.patternData = sliders.values.clone();
+  
   return bd;
 }
 
@@ -62,7 +67,7 @@ class Placer {
   }
 
   boolean placeNext() {
-    for (int attempt = 0; attempt < 100; attempt++) {
+    for (int attempt = 0; attempt < 500; attempt++) {
       x = int(random(5 + mRadius, mMaxX - mRadius - 5));
       y = int(random(5 + mRadius, mMaxY - mRadius - 5));
       boolean ok = true;
@@ -124,6 +129,8 @@ class Jelly {
   // Draws this jelly to screen.
   void draw() {
     BeatData bd = prepBeatData();
+    // By default use HSB model, but visualizers can switch to RGB if needed.
+    colorMode(HSB, 255);
     mVisualizer.process(bd);
     stroke(100);
     // How big each slice is (in radians).
@@ -132,7 +139,7 @@ class Jelly {
     float offset = sliceSize / 3 * mId;
     for (int i = 0; i < mPixels.length; i++) {
       fill(mPixels[i]);
-      arc(mPosX, mPosY, JELLY_RADIUS, JELLY_RADIUS,
+      arc(mPosX, mPosY, JELLY_RADIUS, JELLY_RADIUS, 
         offset + sliceSize * i, offset + sliceSize * (i + 1), PIE);
     }
   }
@@ -177,10 +184,16 @@ void setVisualizer(Class visClass) {
   println("switched to visualizer: " + visualizerName);
 }
 
+ControlP5 cp5;
+Sliders sliders;
+
 void setup() {
   colorMode(HSB, 255);
   size(800, 600);
-  Placer placer = new Placer(width, height - 50, JELLY_RADIUS);
+  cp5 = new ControlP5(this);
+  sliders = new Sliders(cp5);
+  
+  Placer placer = new Placer(width - 150, height - 50, JELLY_RADIUS);
   jellies = new Jelly[JELLIES];
   for (int i = 0; i < JELLIES; i++) {
     if (!placer.placeNext()) {

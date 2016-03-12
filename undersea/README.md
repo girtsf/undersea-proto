@@ -4,7 +4,11 @@ Prototype for LED jelly visualization algorithms, written in Processing.
 
 # Requirements
 
-You will need Processing: https://processing.org/download/
+You will need:
+* Processing: https://processing.org/download/
+* controlP5 library: http://www.sojamo.de/libraries/controlP5/
+  (see its install\_instructions.txt for where to unpack it)
+
 
 # Hacking
 
