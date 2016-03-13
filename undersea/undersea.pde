@@ -18,6 +18,7 @@ Class[] visualizers = {
   FlashVisualizer.class, 
   PrimeVisualizer.class,
   SingleColorVisualizer.class,
+  SlowColorFadeVisualizer.class,
   // add new visualizers here
 };
 
