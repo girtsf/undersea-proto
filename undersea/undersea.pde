@@ -42,7 +42,7 @@ BeatData buildGlobalBeatData(int jitterTicks) {
   bd.beatTicks = (int)(ticks % beatInterval);
   bd.beats = beats;
   bd.ticks = ticks;
-  bd.patternData = sliders.values.clone();
+  bd.parameters = sliders.values.clone();
   
   return bd;
 }
@@ -172,6 +172,7 @@ void setVisualizer(Class visClass) {
       // hackery from http://stackoverflow.com/questions/31150337/
       java.lang.reflect.Constructor c = visClass.getDeclaredConstructor(Class.forName("undersea"));
       v = (Visualizer)c.newInstance(this);
+      sliders.setNames(v.getParameterLabels());
     }
     catch (Exception ex) {
       println("bleh");
@@ -193,7 +194,7 @@ void setup() {
   cp5 = new ControlP5(this);
   sliders = new Sliders(cp5);
   
-  Placer placer = new Placer(width - 150, height - 50, JELLY_RADIUS);
+  Placer placer = new Placer(width - 175, height - 50, JELLY_RADIUS);
   jellies = new Jelly[JELLIES];
   for (int i = 0; i < JELLIES; i++) {
     if (!placer.placeNext()) {

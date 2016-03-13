@@ -38,7 +38,7 @@ class BeatData {
   long ticks;
   
   // ---------------------------------------------------------------------------
-  // Pattern specific data: the interface for this might change, but for now, assume
-  // that patternData contains 8 values, each [0, 255].
-  int patternData[];
+  // Pattern specific parameters: the interface for this might change, but for now, assume
+  // that parameters contains up to 8 values, each [0, 255].
+  int parameters[];
 }
