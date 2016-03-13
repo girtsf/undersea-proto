@@ -17,10 +17,10 @@ class HueRotateVisualizer extends Visualizer {
       long ticksDiff = bd.ticks - lastTicks;
       float speed = 5.0 * float(bd.parameters[0] - 128) / 128;  // -5 .. 5
       float speedPart = speed * ticksDiff / bd.beatInterval;
-      println("speed: " + speed + " ticksDiff:" + ticksDiff + " speedPart:" + speedPart);
+      // println("speed: " + speed + " ticksDiff:" + ticksDiff + " speedPart:" + speedPart);
       rotatePosition = (rotatePosition + speedPart) % 1;  // rotatePosition is 0..1
       if (rotatePosition < 0) rotatePosition += 1;
-      println("rotatePos: " + rotatePosition);
+      // println("rotatePos: " + rotatePosition);
 
       // Hue is determined by the cumulative beat counter. We increment it
       // by 4 on every beat.
@@ -29,7 +29,7 @@ class HueRotateVisualizer extends Visualizer {
       for (int i = 0; i < pixels.length; i++) {
         float posThis = (rotatePosition + i * 1.0 / pixels.length) % 1;
         int b = 100 + (int)(155 * posThis);
-        println("i: " + i + " posThis:" + posThis + " b: " + b);
+        // println("i: " + i + " posThis:" + posThis + " b: " + b);
         pixels[i] = color(hue, 255, b);
       }
     } else {
