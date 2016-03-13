@@ -15,10 +15,13 @@ class Sliders {
         public void controlEvent(ControlEvent theEvent) {
           values[idx] = (int)s.getValue();
         }
-      });
+      }
+      );
     }
   }
-  
+
+  // Sets parameter labels, disables parameters with no labels.
+  // Accepts null for no parameters.
   void setNames(String[] names) {
     if (names == null) {
       names = new String[0];
@@ -30,6 +33,16 @@ class Sliders {
         sliders[i].setVisible(true);
         sliders[i].setLabel(names[i]);
       }
+    }
+  }
+
+  // Sets parameter values. Accepts null for no defaults.
+  void setValues(int[] values) {
+    if (values == null) {
+      return;
+    }
+    for (int i = 0; i < values.length; i++) {
+      sliders[i].setValue(values[i]);
     }
   }
 }

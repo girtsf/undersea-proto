@@ -177,6 +177,7 @@ void setVisualizer(Class visClass) {
       java.lang.reflect.Constructor c = visClass.getDeclaredConstructor(Class.forName("undersea"));
       v = (Visualizer)c.newInstance(this);
       sliders.setNames(v.getParameterLabels());
+      sliders.setValues(v.getParameterDefaults());
     }
     catch (Exception ex) {
       println("bleh");
