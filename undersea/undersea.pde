@@ -1,4 +1,8 @@
 import controlP5.*;
+import themidibus.*; //Import the library
+import javax.sound.midi.MidiMessage; //Import the MidiMessage classes http://java.sun.com/j2se/1.5.0/docs/api/javax/sound/midi/MidiMessage.html
+import javax.sound.midi.SysexMessage;
+import javax.sound.midi.ShortMessage;
 
 // Number of pixels on each jelly.
 static final int PIXELS = 10;
@@ -185,12 +189,20 @@ void setVisualizer(Class visClass) {
   println("switched to visualizer: " + visualizerName);
 }
 
+// Main GUI control object.
 ControlP5 cp5;
+// Parameter input sliders.
 Sliders sliders;
+// MIDI handler.
+MidiBus myBus; // The MidiBus
 
 void setup() {
   colorMode(HSB, 255);
   size(800, 600);
+  
+  MidiBus.list(); // List all available Midi devices on STDOUT. This will show each device's index and name.
+  myBus = new MidiBus(this, 0, 0); // Create a new MidiBus object
+    
   cp5 = new ControlP5(this);
   sliders = new Sliders(cp5);
   

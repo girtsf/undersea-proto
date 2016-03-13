@@ -7,8 +7,10 @@ Prototype for LED jelly visualization algorithms, written in Processing.
 You will need:
 * Processing: https://processing.org/download/
 * controlP5 library: http://www.sojamo.de/libraries/controlP5/
-  (see its install\_instructions.txt for where to unpack it)
+* MidiBus library: http://www.smallbutdigital.com/themidibus.php
 
+You can install the libraries by clicking Sketch > Import Library > Add Library
+and searching by name.
 
 # Hacking
 
