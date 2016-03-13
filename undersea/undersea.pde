@@ -190,19 +190,31 @@ void setVisualizer(Class visClass) {
   println("switched to visualizer: " + visualizerName);
 }
 
+class MyMidiListener implements StandardMidiListener {
+  void midiMessage(javax.sound.midi.MidiMessage message, long timeStamp) {
+    println("midi: " + message);
+  }
+}
+
 // Main GUI control object.
 ControlP5 cp5;
 // Parameter input sliders.
 Sliders sliders;
 // MIDI handler.
 MidiBus myBus; // The MidiBus
+MyMidiListener midiListener;
 
 void setup() {
   colorMode(HSB, 255);
   size(800, 600);
   
   MidiBus.list(); // List all available Midi devices on STDOUT. This will show each device's index and name.
-  myBus = new MidiBus(this, 0, 0); // Create a new MidiBus object
+  myBus = new MidiBus(this);
+  if (!myBus.addInput("simple core midi source")) {
+    println("failed to add MIDI input!");
+  }
+  midiListener = new MyMidiListener();
+  myBus.addMidiListener(midiListener);
     
   cp5 = new ControlP5(this);
   sliders = new Sliders(cp5);
