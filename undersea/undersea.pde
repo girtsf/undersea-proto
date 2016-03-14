@@ -16,9 +16,9 @@ Class[] visualizers = {
   HueRotateVisualizer.class, 
   RandomVisualizer.class, 
   FlashVisualizer.class, 
-  PrimeVisualizer.class,
-  SingleColorVisualizer.class,
-  SlowColorFadeVisualizer.class,
+  PrimeVisualizer.class, 
+  SingleColorVisualizer.class, 
+  SlowColorFadeVisualizer.class, 
   // add new visualizers here
 };
 
@@ -34,8 +34,8 @@ class Pixel {
 
 BeatData buildGlobalBeatData(int jitterTicks) {
   int beatsPerMeasure = 4;
-  int beatInterval = int(32767 / (bpm / 60));
-  long ticks = (long) millis() * 32767 / 1000 + jitterTicks + bpmTapOffset;
+  int beatInterval = int(32767 / (bpmSource.bpm / 60));
+  long ticks = (long) millis() * 32767 / 1000 + jitterTicks + bpmSource.offset;
   int beats = (int)(ticks / beatInterval);
   int measures = beats / beatsPerMeasure;
 
@@ -48,7 +48,7 @@ BeatData buildGlobalBeatData(int jitterTicks) {
   bd.beats = beats;
   bd.ticks = ticks;
   bd.parameters = sliders.values.clone();
-  
+
   return bd;
 }
 
@@ -151,8 +151,7 @@ class Jelly {
 }
 
 Jelly[] jellies;
-float bpm = 120;
-int bpmTapOffset = 0;
+
 String visualizerName;
 int visualizerIdx = 0;
 
@@ -191,35 +190,35 @@ void setVisualizer(Class visClass) {
   println("switched to visualizer: " + visualizerName);
 }
 
-class MyMidiListener implements StandardMidiListener {
-  void midiMessage(javax.sound.midi.MidiMessage message, long timeStamp) {
-    println("midi: " + message);
-  }
-}
 
 // Main GUI control object.
 ControlP5 cp5;
 // Parameter input sliders.
 Sliders sliders;
-// MIDI handler.
-MidiBus myBus; // The MidiBus
-MyMidiListener midiListener;
+// MIDI bus.
+MidiBus myBus;
+// MIDI / keyboard BPM source.
+BpmSource bpmSource;
+// BPM toggle.
+Toggle bpmToggle;
 
 void setup() {
   colorMode(HSB, 255);
   size(800, 600);
-  
-  MidiBus.list(); // List all available Midi devices on STDOUT. This will show each device's index and name.
+
+  cp5 = new ControlP5(this);
+
+  // List all available Midi devices on STDOUT. This will show each device's index and name.
+  MidiBus.list();
   myBus = new MidiBus(this);
   if (!myBus.addInput("simple core midi source")) {
     println("failed to add MIDI input!");
   }
-  midiListener = new MyMidiListener();
-  myBus.addMidiListener(midiListener);
-    
-  cp5 = new ControlP5(this);
+  bpmSource = new BpmSource(cp5, width - 170, 10);
+  myBus.addMidiListener(bpmSource);
+
   sliders = new Sliders(cp5);
-  
+
   Placer placer = new Placer(width - 175, height - 50, JELLY_RADIUS);
   jellies = new Jelly[JELLIES];
   for (int i = 0; i < JELLIES; i++) {
@@ -233,37 +232,14 @@ void setup() {
   nextVisualizer(0);
 }
 
-int lastTap = 0;
-int firstTap = 0;
-int tapCount = 0;
+// Handle keypresses.
 void keyPressed() {
-  int now = millis();
   if (key == ' ') {
-    if ((lastTap == 0) || ((now - lastTap) > 2000)) {
-      // If the last taps were more than 2s apart, reset the timer.
-      println("reset");
-      firstTap = now;
-      tapCount = 1;
-    } else {
-      tapCount++;
-    }
-
-    if (tapCount > 1) {
-      int delta = now - firstTap;
-      println("delta: " + delta + "  tapcount: " + tapCount);
-      float msPerTap = float(delta) / (tapCount - 1);
-      bpm = 60.0 * 1000.0 / msPerTap;
-      bpmTapOffset = 0;
-      BeatData bd = buildGlobalBeatData(0);
-      bpmTapOffset = -bd.beatTicks;
-      println("offset: " + bpmTapOffset);
-    }
-
-    lastTap = now;
+    bpmSource.handleBpmTap();
   } else if (key == ',') {
-    bpm += 0.25;
+    bpmSource.adjustBpm(0.25);
   } else if (key == '.') {
-    bpm -= 0.25;
+    bpmSource.adjustBpm(-0.25);
   } else if (keyCode == UP) {
     nextVisualizer(1);
   } else if (keyCode == DOWN) {
@@ -280,11 +256,11 @@ void drawStatus() {
 
   fill(0, 255, 255);
   BeatData bd = buildGlobalBeatData(0);
-  String status = "BPM: " + nf(bpm, 3, 1);
+  String status = "BPM: " + nf(bpmSource.bpm, 3, 1);
   status += " measure: " + bd.measure;
   status += " beat: " + bd.beatInMeasure;
   status += " visualizer: " + visualizerName;
-  // status += " beat ticks:" + bd.beat_ticks;
+  status += " beat ticks: " + bd.beatTicks + "/" + bd.beatInterval;
   status += " fps: " + nf(frameRate, 3, 1);
   text(status, 10, height - 20);
 }

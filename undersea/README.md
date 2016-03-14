@@ -22,5 +22,14 @@ add the class to the array near the top of undersea.pde.
 
 # Ideas
 
+* global brightness multiplier: conserve battery by dialing a global brightness
+  multipler.
 * manual proximity. the VJ UI would have a quick way to light up each node
   and keys to assign some sort of 1D or 2D order.
+* use buttons to set up brightness / patterns
+
+# TODO
+
+* Implement node id
+* Implement bitfields for node ids
+* Frequency chooser
