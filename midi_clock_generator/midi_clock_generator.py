@@ -16,8 +16,9 @@ import time
 
 
 def Main(bpm):
-    bps = bpm / 120.0
-    interval = bps / 24.0
+    bps = bpm / 60
+    time_per_beat = 1.0 / bps
+    interval = time_per_beat / 24.0
     print('BPM: %d sleep interval: %f' % (bpm, interval))
     while True:
         d = simplecoremidi.send_midi([0xf8])
