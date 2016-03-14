@@ -4,10 +4,12 @@
 import java.util.List;
 import java.util.LinkedList;
 
-class BpmSource implements StandardMidiListener {
+class BpmSource {
   // Midi reference:
   // https://www.nyu.edu/classes/bello/FMT_files/9_MIDI_code.pdf
   final static byte TIMING_CLOCK = (byte)0xf8;
+  final static byte NOTE_ON_START = (byte)0x80;
+  final static byte NOTE_ON_END = (byte)0x8f;
 
   final static int MESSAGES_PER_BEAT = 24;
 
@@ -23,12 +25,14 @@ class BpmSource implements StandardMidiListener {
   float bpm = 120;
   int offset = 0;
 
+  byte bpmTapNote;
+
   LinkedList<Integer> clockTimings = new LinkedList<Integer>();
 
   Toggle bpmToggle;
 
-  BpmSource(ControlP5 cp5, int toggleX, int toggleY) {
-    bpmToggle = cp5.addToggle("MIDI BPM").setPosition(toggleX, toggleY).setValue(true);
+  BpmSource(ControlP5 cp5, int toggleX, int toggleY, byte bpmTapNote) {
+    bpmToggle = cp5.addToggle("MIDI BPM").setPosition(toggleX, toggleY).setValue(false);
     bpmToggle.addListener(new ControlListener() {
       void controlEvent(ControlEvent theEvent) {
         clockFromMidi = bpmToggle.getBooleanValue();
@@ -38,6 +42,7 @@ class BpmSource implements StandardMidiListener {
       }
     }
     );
+    this.bpmTapNote = bpmTapNote;
   }
 
   // XXX: this is not super reliable and should be rewritten.
@@ -64,15 +69,6 @@ class BpmSource implements StandardMidiListener {
       bpm = 120.0;
     }
     // XXX: handle offset + downbeat (start of measure).
-  }
-
-  void midiMessage(javax.sound.midi.MidiMessage message, long timeStamp) {
-    byte[] bytes = message.getMessage();
-    for (byte b : bytes) {
-      if (b == TIMING_CLOCK) {
-        handleMidiClockMessage();
-      }
-    }
   }
 
   void adjustBpm(float amount) {
@@ -103,5 +99,37 @@ class BpmSource implements StandardMidiListener {
     }
 
     lastTap = now;
+  }
+
+  StandardMidiListener clockListener = new StandardMidiListener() {
+    void midiMessage(javax.sound.midi.MidiMessage message, long timeStamp) {
+      byte[] bytes = message.getMessage();
+      for (byte b : bytes) {
+        if (b == TIMING_CLOCK) {
+          handleMidiClockMessage();
+        }
+      }
+    }
+  };
+
+  boolean isNoteOnCommand(byte note) {
+    return (note >= NOTE_ON_START) && (note <= NOTE_ON_END);
+  }
+
+  StandardMidiListener tapListener = new StandardMidiListener() {
+    void midiMessage(javax.sound.midi.MidiMessage message, long timeStamp) {
+      byte[] bytes = message.getMessage();
+      if (bytes.length == 3 && isNoteOnCommand(bytes[0]) && (bytes[1] == bpmTapNote)) {
+        handleBpmTap();
+      }
+    }
+  };
+
+  void hexdump(byte[] bytes) {
+    print("(" + bytes.length + "): ");
+    for (byte b : bytes) {
+      print(String.format("%02x ", b));
+    }
+    println("");
   }
 }

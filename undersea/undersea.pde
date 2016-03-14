@@ -8,8 +8,15 @@ import javax.sound.midi.ShortMessage;
 static final int PIXELS = 10;
 // Number of jellies.
 static final int JELLIES = 15;
-
+// How big each jelly is.
 static final int JELLY_RADIUS = 70;
+// MIDI note to use for BPM tap / downbeat sync.
+static final byte BPM_TAP_NOTE = (byte) 0x24;
+
+// MIDI clock device name.
+static final String MIDI_CLOCK_DEVICE = "simple core midi source";
+// MIDI input device name.
+static final String MIDI_INPUT_DEVICE = "Oxygen 49";
 
 Class[] visualizers = {
   PulseVisualizer.class, 
@@ -195,8 +202,9 @@ void setVisualizer(Class visClass) {
 ControlP5 cp5;
 // Parameter input sliders.
 Sliders sliders;
-// MIDI bus.
-MidiBus myBus;
+// MIDI buses:
+MidiBus midiClockBus;
+MidiBus midiInputBus;
 // MIDI / keyboard BPM source.
 BpmSource bpmSource;
 // BPM toggle.
@@ -210,12 +218,19 @@ void setup() {
 
   // List all available Midi devices on STDOUT. This will show each device's index and name.
   MidiBus.list();
-  myBus = new MidiBus(this);
-  if (!myBus.addInput("simple core midi source")) {
-    println("failed to add MIDI input!");
+  midiClockBus = new MidiBus(this);
+  if (!midiClockBus.addInput(MIDI_CLOCK_DEVICE)) {
+    println("failed to add MIDI clock input");
   }
-  bpmSource = new BpmSource(cp5, width - 170, 10);
-  myBus.addMidiListener(bpmSource);
+  midiInputBus = new MidiBus(this);
+  if (!midiInputBus.addInput(MIDI_INPUT_DEVICE)) {
+    println("failed to add MIDI control input");
+  }
+
+  bpmSource = new BpmSource(cp5, width - 170, 10, BPM_TAP_NOTE);
+
+  midiClockBus.addMidiListener(bpmSource.clockListener);
+  midiInputBus.addMidiListener(bpmSource.tapListener);
 
   sliders = new Sliders(cp5);
 
