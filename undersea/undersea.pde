@@ -3,6 +3,7 @@ import themidibus.*; //Import the library
 import javax.sound.midi.MidiMessage; //Import the MidiMessage classes http://java.sun.com/j2se/1.5.0/docs/api/javax/sound/midi/MidiMessage.html
 import javax.sound.midi.SysexMessage;
 import javax.sound.midi.ShortMessage;
+import java.util.Map;
 
 // Number of pixels on each jelly.
 static final int PIXELS = 10;
@@ -10,13 +11,18 @@ static final int PIXELS = 10;
 static final int JELLIES = 15;
 // How big each jelly is.
 static final int JELLY_RADIUS = 70;
+
 // MIDI note to use for BPM tap / downbeat sync.
 static final byte BPM_TAP_NOTE = (byte) 0x24;
-
 // MIDI clock device name.
 static final String MIDI_CLOCK_DEVICE = "simple core midi source";
 // MIDI input device name.
 static final String MIDI_INPUT_DEVICE = "Oxygen 49";
+// Whether to show all MIDI input messages.
+static final boolean MIDI_DEBUG = true;
+// Addresses for the first eight sliders on the Oxygen 49 keyboard.
+static final byte[] PARAMETER_KNOB_MIDI_ADDRESSES = {0x14, 0x15, 0x47, 0x48, 0x19, 0x49, 0x4a, 0x46};
+
 
 Class[] visualizers = {
   PulseVisualizer.class, 
@@ -144,6 +150,7 @@ class Jelly {
     // By default use HSB model, but visualizers can switch to RGB if needed.
     colorMode(HSB, 255);
     mVisualizer.process(bd);
+    colorMode(HSB, 255);
     stroke(100);
     // How big each slice is (in radians).
     float sliceSize = 2 * PI / mPixels.length;
@@ -197,6 +204,27 @@ void setVisualizer(Class visClass) {
   println("switched to visualizer: " + visualizerName);
 }
 
+// Class that hexdumps received MIDI messages.
+class MidiDumper {
+  LinkedList<StandardMidiListener> listeners = new LinkedList<StandardMidiListener>();
+
+  StandardMidiListener getDumper(final String name) {
+    StandardMidiListener listener = new StandardMidiListener() {
+      public void midiMessage(javax.sound.midi.MidiMessage message, long timeStamp) {
+        byte[] bytes = message.getMessage();
+
+        print(name + " (" + bytes.length + "): ");
+        for (byte b : bytes) {
+          print(String.format("%02x ", b));
+        }
+        println("");
+      }
+    };
+    listeners.addLast(listener);
+    return listener;
+  }
+}
+
 
 // Main GUI control object.
 ControlP5 cp5;
@@ -209,6 +237,8 @@ MidiBus midiInputBus;
 BpmSource bpmSource;
 // BPM toggle.
 Toggle bpmToggle;
+
+MidiDumper midiDumper = new MidiDumper();
 
 void setup() {
   colorMode(HSB, 255);
@@ -226,13 +256,20 @@ void setup() {
   if (!midiInputBus.addInput(MIDI_INPUT_DEVICE)) {
     println("failed to add MIDI control input");
   }
+  if (MIDI_DEBUG) {
+    // don't dump clock, it's spammy.
+    // midiClockBus.addMidiListener(midiDumper.getDumper("clock"));
+    StandardMidiListener m = midiDumper.getDumper("input");
+    midiInputBus.addMidiListener(m);
+  }
 
   bpmSource = new BpmSource(cp5, width - 170, 10, BPM_TAP_NOTE);
 
+  sliders = new Sliders(cp5, PARAMETER_KNOB_MIDI_ADDRESSES);
+
   midiClockBus.addMidiListener(bpmSource.clockListener);
   midiInputBus.addMidiListener(bpmSource.tapListener);
-
-  sliders = new Sliders(cp5);
+  midiInputBus.addMidiListener(sliders.midiListener);
 
   Placer placer = new Placer(width - 175, height - 50, JELLY_RADIUS);
   jellies = new Jelly[JELLIES];
@@ -263,14 +300,13 @@ void keyPressed() {
 }
 
 // Draws a status string. Or something.
-void drawStatus() {
+void drawStatus(BeatData bd) {
   textSize(14);
 
   fill(0, 0, 255);
   text("[SPACE] tap for bpm [,.] bpm up/down [↑↓] change visualizers", 10, height - 40);
 
   fill(0, 255, 255);
-  BeatData bd = buildGlobalBeatData(0);
   String status = "BPM: " + nf(bpmSource.bpm, 3, 1);
   status += " measure: " + bd.measure;
   status += " beat: " + bd.beatInMeasure;
@@ -278,6 +314,20 @@ void drawStatus() {
   status += " beat ticks: " + bd.beatTicks + "/" + bd.beatInterval;
   status += " fps: " + nf(frameRate, 3, 1);
   text(status, 10, height - 20);
+}
+
+// Draws a spinning beat indicator.
+void drawBeatIndicator(BeatData bd, int x, int y, int radius) {
+  stroke(0, 0, 255);
+  fill(0, 0, 0);
+  // Draw a circle.
+  arc(x, y, radius, radius, 0, 2 * PI);
+  // Draw a line at 12 o'clock.
+  arc(x, y, radius, radius, - PI / 2 - PI / 10, - PI / 2 - PI / 10, PIE);
+  fill(0, 0, 255);
+  float percentage = (float) bd.beatTicks / bd.beatInterval;
+  float loc = - PI / 2 + percentage * 2 * PI;
+  arc(x, y, radius, radius, loc, loc + PI/10, PIE);
 }
 
 // Main draw function. Draws ALL the jellies.
@@ -288,6 +338,8 @@ void draw() {
   for (Jelly j : jellies) {
     j.draw();
   }
-  // Status text.
-  drawStatus();
+  // Status text and beat indicator.
+  BeatData bd = buildGlobalBeatData(0);
+  drawStatus(bd);
+  drawBeatIndicator(bd, width - 100, height - 100, 100);
 }

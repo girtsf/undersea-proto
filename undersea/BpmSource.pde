@@ -7,9 +7,9 @@ import java.util.LinkedList;
 class BpmSource {
   // Midi reference:
   // https://www.nyu.edu/classes/bello/FMT_files/9_MIDI_code.pdf
-  final static byte TIMING_CLOCK = (byte)0xf8;
-  final static byte NOTE_ON_START = (byte)0x80;
-  final static byte NOTE_ON_END = (byte)0x8f;
+  final static byte TIMING_CLOCK = (byte) 0xf8;
+  final static byte NOTE_ON_START = (byte) 0x80;
+  final static byte NOTE_ON_END = (byte) 0x8f;
 
   final static int MESSAGES_PER_BEAT = 24;
 
@@ -124,12 +124,4 @@ class BpmSource {
       }
     }
   };
-
-  void hexdump(byte[] bytes) {
-    print("(" + bytes.length + "): ");
-    for (byte b : bytes) {
-      print(String.format("%02x ", b));
-    }
-    println("");
-  }
 }
