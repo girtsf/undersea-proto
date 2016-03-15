@@ -1,7 +1,7 @@
 import controlP5.*;
 
 class Sliders {
-  final static int CHANNELS = 8;
+  final static int CHANNELS = 9;  // 8 params + global brightness
   final static byte CONTROL_CHANGE_START = (byte)0xb0;
   final static byte CONTROL_CHANGE_END = (byte)0xbf;
 
@@ -13,7 +13,7 @@ class Sliders {
 
   Sliders(ControlP5 cp5, byte[] midiAddresses) {
     for (int i = 0; i < CHANNELS; i++) {
-      float value = 255.0 / CHANNELS * i;
+      float value = 255;
       final Slider s = cp5.addSlider("" + i).setPosition(width - 170, 50 + 35 * i).setRange(0, 255).setSize(90, 30).setValue(value);
       sliders[i] = s;
       final int idx = i;
@@ -34,7 +34,7 @@ class Sliders {
       names = new String[0];
     }
     for (int i = 0; i < CHANNELS; i++) {
-      if (i >= names.length) {
+      if (i >= names.length || names[i] == null) {
         sliders[i].setVisible(false);
       } else {
         sliders[i].setVisible(true);

@@ -29,14 +29,14 @@ final static int SERIAL_BAUD = 115200;
 
 
 Class[] visualizers = {
-  PulseVisualizer.class,
-  HueRotateVisualizer.class,
-  RandomVisualizer.class,
-  FlashVisualizer.class,
-  PrimeVisualizer.class,
-  SingleColorVisualizer.class,
-  SlowColorFadeVisualizer.class,
-  ScannerVisualizer.class,
+  PulseVisualizer.class, 
+  HueRotateVisualizer.class, 
+  RandomVisualizer.class, 
+  FlashVisualizer.class, 
+  PrimeVisualizer.class, 
+  SingleColorVisualizer.class, 
+  SlowColorFadeVisualizer.class, 
+  ScannerVisualizer.class, 
   // add new visualizers here
 };
 
@@ -187,6 +187,17 @@ void nextVisualizer(int dir) {
   setVisualizer(v);
 }
 
+String[] addGlobalBrightnessLabel(String[] labels) {
+  String[] out = new String[Sliders.CHANNELS];
+  if (labels != null) {
+    for (int i = 0; i < labels.length; i++) {
+      out[i] = labels[i];
+    }
+  }
+  out[Sliders.CHANNELS - 1] = "Global brightness";
+  return out;
+}
+
 void setVisualizer(Class visClass) {
   for (Jelly j : jellies) {
     Visualizer v = null;
@@ -195,7 +206,7 @@ void setVisualizer(Class visClass) {
       // hackery from http://stackoverflow.com/questions/31150337/
       java.lang.reflect.Constructor c = visClass.getDeclaredConstructor(Class.forName("undersea"));
       v = (Visualizer)c.newInstance(this);
-      sliders.setNames(v.getParameterLabels());
+      sliders.setNames(addGlobalBrightnessLabel(v.getParameterLabels()));
       sliders.setValues(v.getParameterDefaults());
     }
     catch (Exception ex) {
@@ -277,7 +288,7 @@ void setup() {
   midiClockBus.addMidiListener(bpmSource.clockListener);
   midiInputBus.addMidiListener(bpmSource.tapListener);
   midiInputBus.addMidiListener(sliders.midiListener);
-  
+
   serialControl = new SerialControl(this, SERIAL_PORT, SERIAL_BAUD);
 
   Placer placer = new Placer(width - 175, height - 50, JELLY_RADIUS);
@@ -288,7 +299,7 @@ void setup() {
     }
     jellies[i] = new Jelly(i, placer.x, placer.y);
   }
-  
+
   frameRate(50);
 
   nextVisualizer(0);
