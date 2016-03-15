@@ -1,3 +1,3 @@
-undersea/ - simulator for jelly patterns. Add paterns here!
+undersea/ - simulator for jelly patterns and VJ tool.
 
-neptune/ - VJ tool.
+midi_clock_generator/ - for generating test MIDI clock.
