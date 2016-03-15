@@ -23,15 +23,20 @@ static final boolean MIDI_DEBUG = true;
 // Addresses for the first eight sliders on the Oxygen 49 keyboard.
 static final byte[] PARAMETER_KNOB_MIDI_ADDRESSES = {0x14, 0x15, 0x47, 0x48, 0x19, 0x49, 0x4a, 0x46};
 
+// Serial port config.
+final static String SERIAL_PORT = "/dev/tty.usbserial-AI02BBCZ";
+final static int SERIAL_BAUD = 115200;
+
 
 Class[] visualizers = {
-  PulseVisualizer.class, 
-  HueRotateVisualizer.class, 
-  RandomVisualizer.class, 
-  FlashVisualizer.class, 
-  PrimeVisualizer.class, 
-  SingleColorVisualizer.class, 
-  SlowColorFadeVisualizer.class, 
+  PulseVisualizer.class,
+  HueRotateVisualizer.class,
+  RandomVisualizer.class,
+  FlashVisualizer.class,
+  PrimeVisualizer.class,
+  SingleColorVisualizer.class,
+  SlowColorFadeVisualizer.class,
+  ScannerVisualizer.class,
   // add new visualizers here
 };
 
@@ -238,6 +243,8 @@ BpmSource bpmSource;
 // BPM toggle.
 Toggle bpmToggle;
 
+SerialControl serialControl;
+
 MidiDumper midiDumper = new MidiDumper();
 
 void setup() {
@@ -270,6 +277,8 @@ void setup() {
   midiClockBus.addMidiListener(bpmSource.clockListener);
   midiInputBus.addMidiListener(bpmSource.tapListener);
   midiInputBus.addMidiListener(sliders.midiListener);
+  
+  serialControl = new SerialControl(this, SERIAL_PORT, SERIAL_BAUD);
 
   Placer placer = new Placer(width - 175, height - 50, JELLY_RADIUS);
   jellies = new Jelly[JELLIES];
@@ -279,6 +288,7 @@ void setup() {
     }
     jellies[i] = new Jelly(i, placer.x, placer.y);
   }
+  
   frameRate(50);
 
   nextVisualizer(0);
@@ -296,6 +306,9 @@ void keyPressed() {
     nextVisualizer(1);
   } else if (keyCode == DOWN) {
     nextVisualizer(-1);
+  } else {
+    // XXX: make periodic and on changes.
+    serialControl.sendPacket(bpmSource.bpm, bpmSource.offset);
   }
 }
 
@@ -342,4 +355,8 @@ void draw() {
   BeatData bd = buildGlobalBeatData(0);
   drawStatus(bd);
   drawBeatIndicator(bd, width - 100, height - 100, 100);
+}
+
+void serialEvent(Serial p) {
+  serialControl.handleSerialEvent();
 }
