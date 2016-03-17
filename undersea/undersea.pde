@@ -34,7 +34,6 @@ final static int MAX_PACKET_INTERVAL_MS = 200;
 
 // Add the visualizers/patterns here.
 static final Class[] VISUALIZERS = {
-Class[] visualizers = {
   Swimming2Visualizer.class,
   SwimmingVisualizer.class,
   FadeToBlueVisualizer.class,
@@ -250,15 +249,19 @@ class PatternPicker {
       .setType(ControlP5.LIST)
       //.setBarVisible(false)
       .setItemHeight(30);
-    for (Class c : VISUALIZERS) {
+      
+    for (int i = 0; i < VISUALIZERS.length; i++) {
+      Class c = VISUALIZERS[i];
       String n = getPatternNameFromClass(c);
-      Integer idx = PATTERN_INDICES.get(n);
-      if (idx == null) idx = -1;
-      mPatternList.addItem(n, Integer.valueOf(idx));
-      if (idx < 0) {
+      Integer pat = PATTERN_INDICES.get(n);
+      if (pat == null) pat = -1;
+      String label = "[" + i + "] " + n;
+      mPatternList.addItem(label, Integer.valueOf(pat));
+      if (pat < 0) {
+        // Pattern that is not yet implemented on the jelly.
         CColor col = new CColor();
         col.setBackground(#555555);     
-        mPatternList.getItem(n).put("color", col);
+        mPatternList.getItem(i).put("color", col);
       }
     }
     mPatternList.addListener(changeListener);
@@ -295,6 +298,10 @@ class PatternPicker {
 
   int idx() {
     return (int) mPatternList.getValue();
+  }
+  
+  int patternNum() {
+    return (int) mPatternList.getItem(idx()).get("value");
   }
 
   String name() {
@@ -409,7 +416,7 @@ void sendRadioPacket() {
   packetsSent++;
   int[] parameters = sliders.values.clone();
   int globalBrightness = sliders.globalBrightness();
-  int pattern = patternPicker.idx();
+  int pattern = patternPicker.patternNum();
   if (pattern >= 0) {
     serialControl.sendPacket(bpmSource.bpm, bpmSource.offset, parameters, globalBrightness, pattern);
   }
