@@ -27,14 +27,19 @@ static final byte[] PARAMETER_KNOB_MIDI_ADDRESSES = {0x14, 0x15, 0x47, 0x48, 0x1
 final static String SERIAL_PORT = "/dev/tty.usbserial-AI02BBCZ";
 final static int SERIAL_BAUD = 115200;
 
+// Don't send packets more frequently than this.
+final static int MIN_PACKET_INTERVAL_MS = 20;  // 50 packets/s
+// Don't send packets less frequently than this.
+final static int MAX_PACKET_INTERVAL_MS = 200;  // 5 packets/s
+
 // Add the visualizers/patterns here.
 static final Class[] VISUALIZERS = {
   HueRotateVisualizer.class, 
+  SingleColorVisualizer.class, 
   PulseVisualizer.class, 
   RandomVisualizer.class, 
   FlashVisualizer.class, 
   PrimeVisualizer.class, 
-  SingleColorVisualizer.class, 
   SlowColorFadeVisualizer.class, 
   ScannerVisualizer.class, 
   // add new visualizers here
@@ -44,6 +49,7 @@ static final Class[] VISUALIZERS = {
 static final HashMap<String, Integer> PATTERN_INDICES = new HashMap<String, Integer>();
 static {
   PATTERN_INDICES.put("HueRotate", 0);
+  PATTERN_INDICES.put("SingleColor", 1);
 }
 
 // Represents a single pixel.
@@ -164,14 +170,14 @@ class Jelly {
     colorMode(HSB, 255);
     mVisualizer.process(bd);
     colorMode(HSB, 255);
-    
+
     // Apply global brightness.
     int globalBrightness = sliders.globalBrightness(); 
     color[] postPixels = new color[mPixels.length];
     for (int i = 0; i < mPixels.length; i++) {
       postPixels[i] = color(hue(mPixels[i]), saturation(mPixels[i]), brightness(mPixels[i]) * globalBrightness / 255);
     }
-    
+
     stroke(100);
     // How big each slice is (in radians).
     float sliceSize = 2 * PI / mPixels.length;
@@ -321,7 +327,7 @@ MidiBus midiInputBus;
 BpmSource bpmSource;
 // BPM toggle.
 Toggle bpmToggle;
-
+// Class to send messages across serial port.
 SerialControl serialControl;
 
 MidiDumper midiDumper = new MidiDumper();
@@ -351,7 +357,13 @@ void setup() {
 
   bpmSource = new BpmSource(cp5, width - 170, 10, BPM_TAP_NOTE);
 
-  sliders = new Sliders(cp5, PARAMETER_KNOB_MIDI_ADDRESSES);
+  sliders = new Sliders(cp5, PARAMETER_KNOB_MIDI_ADDRESSES, width - 170, 70);
+  sliders.setChangeCallback(new Runnable() {
+    public void run() {
+      sendRadioPacket();
+    }
+  }
+  );
 
   patternPicker = new PatternPicker(cp5, 5, 5, 200, height - 100);
 
@@ -375,6 +387,36 @@ void setup() {
   patternPicker.nextVisualizer(0);
 }
 
+// Prepares and sends a radio packet, if not rate limited.
+int lastRadioPacket = 0;
+boolean radioPacketPending = false;
+int packetsSent = 0;
+void sendRadioPacket() {
+  int now = millis();
+  int diff = now - lastRadioPacket;
+  if (diff < MIN_PACKET_INTERVAL_MS) {
+    radioPacketPending = true;
+    return;
+  }
+  radioPacketPending = false;
+  lastRadioPacket = now;
+  packetsSent++;
+  int[] parameters = sliders.values.clone();
+  int globalBrightness = sliders.globalBrightness();
+  int pattern = patternPicker.idx();
+  if (pattern >= 0) {
+    serialControl.sendPacket(bpmSource.bpm, bpmSource.offset, parameters, globalBrightness, pattern);
+  }
+}
+
+void maybeSendRadioPacket() {
+  int now = millis();
+  int diff = now - lastRadioPacket;
+  if (radioPacketPending || diff > MAX_PACKET_INTERVAL_MS) {
+    sendRadioPacket();
+  }
+}
+
 // Handle keypresses.
 void keyPressed() {
   if (key == ' ') {
@@ -387,12 +429,6 @@ void keyPressed() {
     patternPicker.nextVisualizer(-1);
   } else if (keyCode == DOWN) {
     patternPicker.nextVisualizer(1);
-  } else {
-    // XXX: make periodic and on changes.
-    int[] parameters = sliders.values.clone();
-    int globalBrightness = sliders.globalBrightness();
-    int pattern = patternPicker.idx(); // XXX: only if defined.
-    serialControl.sendPacket(bpmSource.bpm, bpmSource.offset, parameters, globalBrightness, pattern);
   }
 }
 
@@ -410,6 +446,7 @@ void drawStatus(BeatData bd) {
   status += " visualizer: " + patternPicker.name();
   status += " beat ticks: " + bd.beatTicks + "/" + bd.beatInterval;
   status += " fps: " + nf(frameRate, 3, 1);
+  status += " packets: " + packetsSent;
   text(status, 10, height - 20);
 }
 
@@ -439,6 +476,9 @@ void draw() {
   BeatData bd = buildGlobalBeatData(0);
   drawStatus(bd);
   drawBeatIndicator(bd, width - 100, height - 100, 100);
+
+  // See if we need to send a radio packet.
+  maybeSendRadioPacket();
 }
 
 void serialEvent(Serial p) {

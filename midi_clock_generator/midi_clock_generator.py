@@ -20,10 +20,15 @@ def Main(bpm):
     time_per_beat = 1.0 / bps
     interval = time_per_beat / 24.0
     print('BPM: %d sleep interval: %f' % (bpm, interval))
+    start_time = time.time()
+    i = 0
     while True:
-        d = simplecoremidi.send_midi([0xf8])
-        # TODO: this should keep track of time slept to be more accurate.
-        time.sleep(interval)
+        next_time = start_time + i * interval
+        delta = next_time - time.time()
+        if delta > 0:
+            time.sleep(delta)
+        simplecoremidi.send_midi([0xf8])
+        i += 1
 
 
 if __name__ == '__main__':

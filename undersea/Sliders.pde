@@ -10,17 +10,20 @@ class Sliders {
   // Mapping from MIDI control addresses to parametrs. E.g., index 0 describes the MIDI
   // address for parameter 0, etc.
   byte[] midiAddresses;
+  // Callback to run when values have changed.
+  Runnable callback;
 
-  Sliders(ControlP5 cp5, byte[] midiAddresses) {
+  Sliders(ControlP5 cp5, byte[] midiAddresses, int x, int y) {
     for (int i = 0; i < CHANNELS; i++) {
       int value = 255;
       values[i] = value;
-      final Slider s = cp5.addSlider("" + i).setPosition(width - 170, 50 + 35 * i).setRange(0, 255).setSize(90, 30).setValue(value);
+      final Slider s = cp5.addSlider("" + i).setPosition(x, y + 35 * i).setRange(0, 255).setSize(90, 30).setValue(value);
       sliders[i] = s;
       final int idx = i;
       s.addListener(new ControlListener() {
         public void controlEvent(ControlEvent theEvent) {
           values[idx] = (int)s.getValue();
+          if (callback != null) callback.run();
         }
       }
       );
@@ -28,6 +31,10 @@ class Sliders {
     this.midiAddresses = midiAddresses;
   }
   
+  void setChangeCallback(Runnable c) {
+    callback = c;
+  }
+
   int globalBrightness() {
     return values[CHANNELS - 1];
   }
@@ -72,6 +79,7 @@ class Sliders {
         for (int i = 0; i < midiAddresses.length; i++) {
           if (midiAddresses[i] == address) {
             sliders[i].setValue(value);
+            if (callback != null) callback.run();
             return;
           }
         }

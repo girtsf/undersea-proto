@@ -29,10 +29,32 @@ class BpmSource {
 
   LinkedList<Integer> clockTimings = new LinkedList<Integer>();
 
+  Textfield bpmField;
   Toggle bpmToggle;
 
-  BpmSource(ControlP5 cp5, int toggleX, int toggleY, byte bpmTapNote) {
-    bpmToggle = cp5.addToggle("MIDI BPM").setPosition(toggleX, toggleY).setValue(false);
+  BpmSource(ControlP5 cp5, int x, int y, byte bpmTapNote) {
+    bpmField = cp5.addTextfield("bpm")
+      .setPosition(x, y)
+      .setSize(50, 30)
+      .setText("" + bpm)
+      .setAutoClear(false);
+    bpmField.addListener(new ControlListener() {
+      void controlEvent(ControlEvent theEvent) {
+        try {
+          bpm = Float.parseFloat(bpmField.getText());
+          if (bpm < 40) bpm = 40;
+          if (bpm > 400) bpm = 400;
+        } 
+        catch (NumberFormatException ex) {
+          println("can't parse BPM");
+        }
+        println("got BPM from field: " + bpm);
+        setBpm(bpm);
+      }
+    }
+    );
+
+    bpmToggle = cp5.addToggle("MIDI BPM").setPosition(x + 100, y).setValue(false);
     bpmToggle.addListener(new ControlListener() {
       void controlEvent(ControlEvent theEvent) {
         clockFromMidi = bpmToggle.getBooleanValue();
@@ -64,11 +86,16 @@ class BpmSource {
       int delta = now - clockTimings.getFirst();
       float beatPeriod = (float)(delta) * MESSAGES_PER_BEAT / 1000.0 / count;
       // println("now: ", now, " delta: ", delta, " beatPeriod: ", beatPeriod);
-      bpm = 60.0 / beatPeriod;
+      setBpm(60.0 / beatPeriod);
     } else {
-      bpm = 120.0;
+      setBpm(120.0);
     }
     // XXX: handle offset + downbeat (start of measure).
+  }
+  
+  void setBpm(float bpm) {
+    this.bpm = bpm;
+    bpmField.setText(nf(bpm, 3, 2));
   }
 
   void adjustBpm(float amount) {
@@ -91,7 +118,7 @@ class BpmSource {
       int delta = now - firstTap;
       println("delta: " + delta + "  tapcount: " + tapCount);
       float msPerTap = float(delta) / (tapCount - 1);
-      bpm = 60.0 * 1000.0 / msPerTap;
+      setBpm(60.0 * 1000.0 / msPerTap);
       offset = 0;
       BeatData bd = buildGlobalBeatData(0);
       offset = -bd.beatTicks;

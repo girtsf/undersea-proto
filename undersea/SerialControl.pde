@@ -20,7 +20,11 @@ class SerialControl {
   // Escapes and sends a packet.
   void escapeAndSend(final byte[] b) {
     if (serial == null) {
-      println("would have wanted to send a packet, but serial not open.");
+      print("would have wanted to send a packet, but serial not open. packet:");
+        for (byte b1 : b) {
+          print(String.format("%02x ", b1));
+        }
+        println("");
       return;
     }
     byte[] eof = {(byte) 0xc0};
