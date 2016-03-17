@@ -20,6 +20,7 @@ class ScannerVisualizer extends Visualizer {
     int quarterBeats = (int)(bd.ticks / (bd.beatInterval / 4));
     int nodeCount = bd.parameters[0];
     color c = #000000;  // black
+    if (nodeCount == 0) nodeCount = 1;
     if ((quarterBeats % nodeCount) == bd.hardwareId) {
       int hue = bd.beats % 64 * 4;
       c = color(hue, 255, 255);

@@ -30,7 +30,7 @@ final static int SERIAL_BAUD = 115200;
 // Don't send packets more frequently than this.
 final static int MIN_PACKET_INTERVAL_MS = 20;  // 50 packets/s
 // Don't send packets less frequently than this.
-final static int MAX_PACKET_INTERVAL_MS = 200;  // 5 packets/s
+final static int MAX_PACKET_INTERVAL_MS = 200;
 
 // Add the visualizers/patterns here.
 static final Class[] VISUALIZERS = {
@@ -236,6 +236,7 @@ void setVisualizer(Class visClass) {
 
 class PatternPicker {
   ScrollableList mPatternList;
+  Runnable mCallback;
 
   PatternPicker(ControlP5 cp5, int x, int y, int width, int height) {
     mPatternList = cp5
@@ -265,6 +266,10 @@ class PatternPicker {
     }
   };
 
+  void setChangeCallback(Runnable c) {
+    mCallback = c;
+  }
+
   // Picks next visualizer in the given direction (1: next, -1: prev).
   void nextVisualizer(int dir) {
     int visualizerIdx = idx() + dir;
@@ -281,6 +286,7 @@ class PatternPicker {
   void switchVisualizer() {
     Class v = VISUALIZERS[idx()];
     setVisualizer(v);
+    if (mCallback != null) mCallback.run();
   }
 
   int idx() {
@@ -358,14 +364,10 @@ void setup() {
   bpmSource = new BpmSource(cp5, width - 170, 10, BPM_TAP_NOTE);
 
   sliders = new Sliders(cp5, PARAMETER_KNOB_MIDI_ADDRESSES, width - 170, 70);
-  sliders.setChangeCallback(new Runnable() {
-    public void run() {
-      sendRadioPacket();
-    }
-  }
-  );
-
+  sliders.setChangeCallback(sendRadioPacketRunnable);
+  
   patternPicker = new PatternPicker(cp5, 5, 5, 200, height - 100);
+  patternPicker.setChangeCallback(sendRadioPacketRunnable);
 
   midiClockBus.addMidiListener(bpmSource.clockListener);
   midiInputBus.addMidiListener(bpmSource.tapListener);
@@ -408,6 +410,12 @@ void sendRadioPacket() {
     serialControl.sendPacket(bpmSource.bpm, bpmSource.offset, parameters, globalBrightness, pattern);
   }
 }
+
+Runnable sendRadioPacketRunnable = new Runnable() {
+  public void run() {
+    sendRadioPacket();
+  }
+};
 
 void maybeSendRadioPacket() {
   int now = millis();

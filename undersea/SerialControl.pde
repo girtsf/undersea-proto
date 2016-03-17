@@ -21,12 +21,21 @@ class SerialControl {
   void escapeAndSend(final byte[] b) {
     if (serial == null) {
       print("would have wanted to send a packet, but serial not open. packet:");
-        for (byte b1 : b) {
-          print(String.format("%02x ", b1));
-        }
-        println("");
+      for (byte b1 : b) {
+        print(String.format("%02x ", b1));
+      }
+      println("");
       return;
     }
+
+    /*
+    print("sending: ");
+    for (byte b1 : b) {
+      print(String.format("%02x ", b1));
+    }
+    println("");
+    */
+
     byte[] eof = {(byte) 0xc0};
     byte[] escapedEof = {(byte) 0xdb, (byte) 0xdc};
     byte[] escapedEsc = {(byte) 0xdb, (byte) 0xdd};
@@ -67,7 +76,7 @@ class SerialControl {
     }
     p.setUint8(32, globalBrightness);
     p.setUint8(33, pattern);
-    
+
     escapeAndSend(p.bytes);
   }
 
