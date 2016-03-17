@@ -7,6 +7,7 @@ class SerialControl {
 
   SerialControl(PApplet applet, String port, int baud) {
     // List all serial ports.
+    println("----- Serial Ports -----");
     printArray(Serial.list());
 
     try {
@@ -30,11 +31,11 @@ class SerialControl {
 
     /*
     print("sending: ");
-    for (byte b1 : b) {
-      print(String.format("%02x ", b1));
-    }
-    println("");
-    */
+     for (byte b1 : b) {
+     print(String.format("%02x ", b1));
+     }
+     println("");
+     */
 
     byte[] eof = {(byte) 0xc0};
     byte[] escapedEof = {(byte) 0xdb, (byte) 0xdc};
@@ -53,29 +54,26 @@ class SerialControl {
     serial.write(eof);
   }
 
-  void sendPacket(float bpm, int offsetTicks, int[] parameters, int globalBrightness, int pattern) {
-    int beatsPerMeasure = 4;
-    int beatInterval = int(32767.0 / (bpm / 60));
-    long ticks = (long) millis() * 32767 / 1000 + offsetTicks;
-    int beats = (int)(ticks / beatInterval);
-    // int measures = beats / beatsPerMeasure;
-    int beatInMeasure = beats % beatsPerMeasure;
-    long ticktimePatternStarted = 0; // XXX
+  void sendPacket(BeatData bd, int globalBrightness, int pattern) {
     Packet p = new Packet(64);
     p.setUint16(0, 0x13d);  // magic
     p.setUint16(2, 1);  // version
     p.setUint16(3, 1);  // command=beat
-    p.setUint64(4, ticks); 
-    p.setUint8(12, beatsPerMeasure);
-    p.setUint8(13, beatInMeasure);
-    p.setUint16(14, beatInterval);
-    p.setUint64(16, ticktimePatternStarted);
+    // XXX add beats
+    p.setUint64(4, bd.ticks); 
+    p.setUint8(12, bd.beatsPerMeasure);
+    p.setUint8(13, bd.beatInMeasure);
+    p.setUint16(14, bd.beatInterval);
+    p.setUint16(16, bd.beatTicks);
+    p.setUint32(18, bd.measure);
+    p.setUint32(22, bd.beats);
+    p.setUint32(26, bd.ticks);
 
     for (int i = 0; i < 8; i++) {
-      p.setUint8(24 + i, parameters[i]);  // 24-31
+      p.setUint8(30 + i, bd.parameters[i]);
     }
-    p.setUint8(32, globalBrightness);
-    p.setUint8(33, pattern);
+    p.setUint8(38, globalBrightness);
+    p.setUint8(39, pattern);
 
     escapeAndSend(p.bytes);
   }
@@ -113,6 +111,13 @@ class Packet {
   void setUint64(int pos, long value) {
     assert(value >= 0);
     for (int i = 0; i < 8; i++) {
+      bytes[pos + 1] = (byte)((value >> (i*8)) & 0xff);
+    }
+  }
+  
+  void setUint32(int pos, long value) {
+    assert(value >= 0);
+    for (int i = 0; i < 4; i++) {
       bytes[pos + 1] = (byte)((value >> (i*8)) & 0xff);
     }
   }

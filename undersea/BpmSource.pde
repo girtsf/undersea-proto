@@ -22,8 +22,15 @@ class BpmSource {
   int firstTap = 0;
   int tapCount = 0;
 
+  // Constant for now.
+  int beatsPerMeasure = 4;
   float bpm = 120;
-  int offset = 0;
+
+  // Keep track of number of timing.
+  long ticks = 0;
+  int beats = 0;
+  int beatTicks = 0;
+  long lastUpdateTicks = 0;
 
   byte bpmTapNote;
 
@@ -67,6 +74,40 @@ class BpmSource {
     this.bpmTapNote = bpmTapNote;
   }
 
+
+  int beatInterval() {
+    return int(32767.0 / (bpm / 60));
+  }
+
+  BeatData buildBeatData(int[] parameters) {
+    int beatInterval = beatInterval();
+    int measures = beats / beatsPerMeasure;
+
+    BeatData bd = new BeatData();
+    bd.beatsPerMeasure = beatsPerMeasure;
+    bd.beatInMeasure = beats % beatsPerMeasure;
+    bd.beatInterval = beatInterval;
+    bd.measure = measures;
+    bd.beatTicks = beatTicks;
+    bd.beats = beats;
+    bd.ticks = ticks;
+    bd.parameters = parameters.clone();
+
+    return bd;
+  }
+
+  void updateTime() {
+    int now = millis();  
+    ticks = (long) now * 32767 / 1000;
+    long ticksDiff = ticks - lastUpdateTicks;
+    int beatInterval = beatInterval();
+    beatTicks += ticksDiff;
+    int newBeats = (int)(beatTicks / beatInterval);
+    beatTicks = beatTicks % beatInterval;
+    beats += newBeats;
+    lastUpdateTicks = ticks;
+  }
+
   // XXX: this is not super reliable and should be rewritten.
   void handleMidiClockMessage() {
     if (!clockFromMidi) {
@@ -92,7 +133,7 @@ class BpmSource {
     }
     // XXX: handle offset + downbeat (start of measure).
   }
-  
+
   void setBpm(float bpm) {
     this.bpm = bpm;
     bpmField.setText(nf(bpm, 3, 2));
@@ -110,8 +151,21 @@ class BpmSource {
       println("reset BPM tap");
       firstTap = now;
       tapCount = 1;
+      // Set downbeat. Allow setting downbeat even when running on midi clock.
+      beatTicks = 0;
+      beats++;
+      while ((beats % beatsPerMeasure) != 0) {
+        beats++;
+      }
     } else {
-      tapCount++;
+      // Don't allow setting BPM when running on MIDI clock.
+      if (!clockFromMidi) {
+        tapCount++;
+      } else {
+        tapCount = 0;
+        lastTap = 0;
+        return;
+      }
     }
 
     if (tapCount > 1) {
@@ -119,10 +173,8 @@ class BpmSource {
       println("delta: " + delta + "  tapcount: " + tapCount);
       float msPerTap = float(delta) / (tapCount - 1);
       setBpm(60.0 * 1000.0 / msPerTap);
-      offset = 0;
-      BeatData bd = buildGlobalBeatData(0);
-      offset = -bd.beatTicks;
-      println("offset: " + offset);
+      beatTicks = 0;
+      beats += 1;
     }
 
     lastTap = now;

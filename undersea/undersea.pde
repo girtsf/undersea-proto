@@ -24,7 +24,10 @@ static final boolean MIDI_DEBUG = true;
 static final byte[] PARAMETER_KNOB_MIDI_ADDRESSES = {0x14, 0x15, 0x47, 0x48, 0x19, 0x49, 0x4a, 0x46, 0x01};
 
 // Serial port config.
-final static String SERIAL_PORT = "/dev/tty.usbserial-AI02BBCZ";
+// FTDI:
+// final static String SERIAL_PORT = "/dev/tty.usbserial-AI02BBCZ";
+// dev-kit:
+final static String SERIAL_PORT = "/dev/tty.usbmodem44";
 final static int SERIAL_BAUD = 115200;
 
 // Don't send packets more frequently than this.
@@ -64,26 +67,6 @@ class Pixel {
     this.b = b;
   }
 };
-
-BeatData buildGlobalBeatData(int jitterTicks) {
-  int beatsPerMeasure = 4;
-  int beatInterval = int(32767 / (bpmSource.bpm / 60));
-  long ticks = (long) millis() * 32767 / 1000 + jitterTicks + bpmSource.offset;
-  int beats = (int)(ticks / beatInterval);
-  int measures = beats / beatsPerMeasure;
-
-  BeatData bd = new BeatData();
-  bd.beatsPerMeasure = beatsPerMeasure;
-  bd.beatInMeasure = beats % beatsPerMeasure;
-  bd.beatInterval = beatInterval;
-  bd.measure = measures;
-  bd.beatTicks = (int)(ticks % beatInterval);
-  bd.beats = beats;
-  bd.ticks = ticks;
-  bd.parameters = sliders.values.clone();
-
-  return bd;
-}
 
 class Placer {
   ArrayList<Integer> mPosX = new ArrayList<Integer>();
@@ -161,7 +144,7 @@ class Jelly {
 
   // Preps beat data and calls the configured visualizer.
   BeatData prepBeatData() {
-    BeatData bd = buildGlobalBeatData(mJitter);
+    BeatData bd = bpmSource.buildBeatData(sliders.values);
     bd.hardwareId = mId;
     return bd;
   }
@@ -411,6 +394,9 @@ void sendRadioPacket() {
     radioPacketPending = true;
     return;
   }
+  
+  bpmSource.updateTime();
+  
   radioPacketPending = false;
   lastRadioPacket = now;
   packetsSent++;
@@ -418,7 +404,7 @@ void sendRadioPacket() {
   int globalBrightness = sliders.globalBrightness();
   int pattern = patternPicker.patternNum();
   if (pattern >= 0) {
-    serialControl.sendPacket(bpmSource.bpm, bpmSource.offset, parameters, globalBrightness, pattern);
+    serialControl.sendPacket(bpmSource.buildBeatData(sliders.values), globalBrightness, pattern);
   }
 }
 
@@ -487,12 +473,14 @@ void drawBeatIndicator(BeatData bd, int x, int y, int radius) {
 void draw() {
   // Clear the display.
   background(0);
+  
+  bpmSource.updateTime();
   // Jellies. Yum.
   for (Jelly j : jellies) {
     j.draw();
   }
   // Status text and beat indicator.
-  BeatData bd = buildGlobalBeatData(0);
+  BeatData bd = bpmSource.buildBeatData(sliders.values);
   drawStatus(bd);
   drawBeatIndicator(bd, width - 100, height - 100, 100);
 

@@ -24,17 +24,13 @@ class BeatData {
   // How many ticks have already passed in this beat interval. This will be [0, beat_interval).
   int beatTicks;
 
-  // How many measures have passed since the start of this visualization pattern.
+  // How many measures have passed since the start.
   int measure;
 
-  // ---------------------------------------------------------------------------
-  // Convenience fields: these can be calculated from the fields above, but are
-  // provided for convenience.
-
-  // How many beats have elapsed since the start of this pattern.
+  // How many beats have elapsed since the start.
   int beats;
 
-  // How many ticks have elapsed since the start of this pattern.
+  // How many ticks have elapsed since the start.
   long ticks;
   
   // ---------------------------------------------------------------------------
