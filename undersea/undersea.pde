@@ -6,7 +6,7 @@ import javax.sound.midi.ShortMessage;
 import java.util.Map;
 
 // Number of pixels on each jelly.
-static final int PIXELS = 10;
+static final int PIXELS = 8;
 // Number of jellies.
 static final int JELLIES = 15;
 // How big each jelly is.
@@ -29,6 +29,9 @@ final static int SERIAL_BAUD = 115200;
 
 
 Class[] visualizers = {
+  Swimming2Visualizer.class,
+  SwimmingVisualizer.class,
+  FadeToBlueVisualizer.class,
   PulseVisualizer.class, 
   HueRotateVisualizer.class, 
   RandomVisualizer.class, 
