@@ -13,7 +13,8 @@ class Sliders {
 
   Sliders(ControlP5 cp5, byte[] midiAddresses) {
     for (int i = 0; i < CHANNELS; i++) {
-      float value = 255;
+      int value = 255;
+      values[i] = value;
       final Slider s = cp5.addSlider("" + i).setPosition(width - 170, 50 + 35 * i).setRange(0, 255).setSize(90, 30).setValue(value);
       sliders[i] = s;
       final int idx = i;
@@ -25,6 +26,10 @@ class Sliders {
       );
     }
     this.midiAddresses = midiAddresses;
+  }
+  
+  int globalBrightness() {
+    return values[CHANNELS - 1];
   }
 
   // Sets parameter labels, disables parameters with no labels.

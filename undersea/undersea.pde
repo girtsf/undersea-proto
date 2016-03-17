@@ -164,13 +164,21 @@ class Jelly {
     colorMode(HSB, 255);
     mVisualizer.process(bd);
     colorMode(HSB, 255);
+    
+    // Apply global brightness.
+    int globalBrightness = sliders.globalBrightness(); 
+    color[] postPixels = new color[mPixels.length];
+    for (int i = 0; i < mPixels.length; i++) {
+      postPixels[i] = color(hue(mPixels[i]), saturation(mPixels[i]), brightness(mPixels[i]) * globalBrightness / 255);
+    }
+    
     stroke(100);
     // How big each slice is (in radians).
     float sliceSize = 2 * PI / mPixels.length;
     // Rotate each jelly slightly.
     float offset = sliceSize / 3 * mId;
     for (int i = 0; i < mPixels.length; i++) {
-      fill(mPixels[i]);
+      fill(postPixels[i]);
       arc(mPosX, mPosY, JELLY_RADIUS, JELLY_RADIUS, 
         offset + sliceSize * i, offset + sliceSize * (i + 1), PIE);
     }
@@ -382,7 +390,7 @@ void keyPressed() {
   } else {
     // XXX: make periodic and on changes.
     int[] parameters = sliders.values.clone();
-    int globalBrightness = sliders.values[sliders.CHANNELS - 1];
+    int globalBrightness = sliders.globalBrightness();
     int pattern = patternPicker.idx(); // XXX: only if defined.
     serialControl.sendPacket(bpmSource.bpm, bpmSource.offset, parameters, globalBrightness, pattern);
   }
