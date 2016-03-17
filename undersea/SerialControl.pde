@@ -11,7 +11,8 @@ class SerialControl {
 
     try {
       serial = new Serial(applet, port, baud);
-    } catch (java.lang.RuntimeException ex) {
+    } 
+    catch (java.lang.RuntimeException ex) {
       println("opening serial failed: " + ex);
     }
   }
@@ -39,7 +40,7 @@ class SerialControl {
     serial.write(eof);
   }
 
-  void sendPacket(float bpm, int offsetTicks) {
+  void sendPacket(float bpm, int offsetTicks, int[] parameters, int globalBrightness, int pattern) {
     int beatsPerMeasure = 4;
     int beatInterval = int(32767.0 / (bpm / 60));
     long ticks = (long) millis() * 32767 / 1000 + offsetTicks;
@@ -47,7 +48,7 @@ class SerialControl {
     // int measures = beats / beatsPerMeasure;
     int beatInMeasure = beats % beatsPerMeasure;
     long ticktimePatternStarted = 0; // XXX
-    Packet p = new Packet(24);
+    Packet p = new Packet(64);
     p.setUint16(0, 0x13d);  // magic
     p.setUint16(2, 1);  // version
     p.setUint16(3, 1);  // command=beat
@@ -57,6 +58,12 @@ class SerialControl {
     p.setUint16(14, beatInterval);
     p.setUint64(16, ticktimePatternStarted);
 
+    for (int i = 0; i < 8; i++) {
+      p.setUint8(24 + i, parameters[i]);  // 24-31
+    }
+    p.setUint8(32, globalBrightness);
+    p.setUint8(33, pattern);
+    
     escapeAndSend(p.bytes);
   }
 
@@ -72,24 +79,24 @@ class SerialControl {
 
 class Packet {
   byte[] bytes;
-  
+
   Packet(int size) {
     bytes = new byte[size];
   }
-  
+
   void setUint16(int pos, int value) {
     assert(value >= 0);
     assert(value <= 65535);
     bytes[pos] = (byte)(value & 0xff);
     bytes[pos + 1] = (byte)((value >> 8) & 0xff);
   }
-  
+
   void setUint8(int pos, int value) {
     assert(value >= 0);
     assert(value <= 65535);
     bytes[pos] = (byte)(value & 0xff);
   }
-  
+
   void setUint64(int pos, long value) {
     assert(value >= 0);
     for (int i = 0; i < 8; i++) {

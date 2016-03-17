@@ -1,4 +1,5 @@
 class HueRotateVisualizer extends Visualizer {
+  static final int PATTERN_IDX = 0;
   float rotatePosition = 0;
   long lastTicks = -1;
 

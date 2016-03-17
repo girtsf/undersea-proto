@@ -20,17 +20,17 @@ static final String MIDI_CLOCK_DEVICE = "simple core midi source";
 static final String MIDI_INPUT_DEVICE = "Oxygen 49";
 // Whether to show all MIDI input messages.
 static final boolean MIDI_DEBUG = true;
-// Addresses for the first eight sliders on the Oxygen 49 keyboard.
-static final byte[] PARAMETER_KNOB_MIDI_ADDRESSES = {0x14, 0x15, 0x47, 0x48, 0x19, 0x49, 0x4a, 0x46};
+// Addresses for the first eight sliders on the Oxygen 49 keyboard + MOD wheel.
+static final byte[] PARAMETER_KNOB_MIDI_ADDRESSES = {0x14, 0x15, 0x47, 0x48, 0x19, 0x49, 0x4a, 0x46, 0x01};
 
 // Serial port config.
 final static String SERIAL_PORT = "/dev/tty.usbserial-AI02BBCZ";
 final static int SERIAL_BAUD = 115200;
 
-
-Class[] visualizers = {
-  PulseVisualizer.class, 
+// Add the visualizers/patterns here.
+static final Class[] VISUALIZERS = {
   HueRotateVisualizer.class, 
+  PulseVisualizer.class, 
   RandomVisualizer.class, 
   FlashVisualizer.class, 
   PrimeVisualizer.class, 
@@ -39,6 +39,12 @@ Class[] visualizers = {
   ScannerVisualizer.class, 
   // add new visualizers here
 };
+
+// Patterns that are defined here can be selected for radio output.
+static final HashMap<String, Integer> PATTERN_INDICES = new HashMap<String, Integer>();
+static {
+  PATTERN_INDICES.put("HueRotate", 0);
+}
 
 // Represents a single pixel.
 class Pixel {
@@ -77,9 +83,11 @@ class Placer {
   int x = -1;
   int y = -1;
 
-  final int mMaxX, mMaxY, mRadius;
+  final int mMinX, mMinY, mMaxX, mMaxY, mRadius;
 
-  Placer(int maxX, int maxY, int radius) {
+  Placer(int minX, int minY, int maxX, int maxY, int radius) {
+    mMinX = minX;
+    mMinY = minY;
     mMaxX = maxX;
     mMaxY = maxY;
     mRadius = radius;
@@ -91,8 +99,8 @@ class Placer {
 
   boolean placeNext() {
     for (int attempt = 0; attempt < 500; attempt++) {
-      x = int(random(5 + mRadius, mMaxX - mRadius - 5));
-      y = int(random(5 + mRadius, mMaxY - mRadius - 5));
+      x = int(random(mMinX + mRadius, mMaxX - mRadius - 5));
+      y = int(random(mMinY + mRadius, mMaxY - mRadius - 5));
       boolean ok = true;
       for (int i = 0; i < mPosX.size(); i++) {
         if (dist(x, y, i) < (mRadius + 5)) {
@@ -171,22 +179,6 @@ class Jelly {
 
 Jelly[] jellies;
 
-String visualizerName;
-int visualizerIdx = 0;
-
-// Picks next visualizer in the given direction (1: next, -1: prev).
-void nextVisualizer(int dir) {
-  visualizerIdx += dir;
-  if (visualizerIdx < 0) {
-    visualizerIdx = visualizers.length - 1;
-  }
-  if (visualizerIdx >= visualizers.length) {
-    visualizerIdx = 0;
-  }
-  Class v = visualizers[visualizerIdx];
-  setVisualizer(v);
-}
-
 String[] addGlobalBrightnessLabel(String[] labels) {
   String[] out = new String[Sliders.CHANNELS];
   if (labels != null) {
@@ -196,6 +188,16 @@ String[] addGlobalBrightnessLabel(String[] labels) {
   }
   out[Sliders.CHANNELS - 1] = "Global brightness";
   return out;
+}
+
+String getPatternNameFromClass(Class visClass) {
+  String name = visClass.getName();
+  int i = name.indexOf("$");
+  if (i >= 0) {
+    name = name.substring(i + 1);
+  }
+  name = name.replaceAll("Visualizer", "");
+  return name;
 }
 
 void setVisualizer(Class visClass) {
@@ -216,8 +218,64 @@ void setVisualizer(Class visClass) {
       j.setVisualizer(v);
     }
   }
-  visualizerName = visClass.getName();
-  println("switched to visualizer: " + visualizerName);
+}
+
+class PatternPicker {
+  ScrollableList mPatternList;
+
+  PatternPicker(ControlP5 cp5, int x, int y, int width, int height) {
+    mPatternList = cp5
+      .addScrollableList("pattern")
+      .setPosition(x, y)
+      .setSize(width, height)
+      .setType(ControlP5.LIST)
+      //.setBarVisible(false)
+      .setItemHeight(30);
+    for (Class c : VISUALIZERS) {
+      String n = getPatternNameFromClass(c);
+      Integer idx = PATTERN_INDICES.get(n);
+      if (idx == null) idx = -1;
+      mPatternList.addItem(n, Integer.valueOf(idx));
+      if (idx < 0) {
+        CColor col = new CColor();
+        col.setBackground(#555555);     
+        mPatternList.getItem(n).put("color", col);
+      }
+    }
+    mPatternList.addListener(changeListener);
+  }
+
+  ControlListener changeListener = new ControlListener() {
+    public void controlEvent(ControlEvent theEvent) {
+      switchVisualizer();
+    }
+  };
+
+  // Picks next visualizer in the given direction (1: next, -1: prev).
+  void nextVisualizer(int dir) {
+    int visualizerIdx = idx() + dir;
+    if (visualizerIdx < 0) {
+      visualizerIdx = VISUALIZERS.length - 1;
+    }
+    if (visualizerIdx >= VISUALIZERS.length) {
+      visualizerIdx = 0;
+    }
+    mPatternList.setValue(visualizerIdx);
+    switchVisualizer();
+  }
+
+  void switchVisualizer() {
+    Class v = VISUALIZERS[idx()];
+    setVisualizer(v);
+  }
+
+  int idx() {
+    return (int) mPatternList.getValue();
+  }
+
+  String name() {
+    return (String) mPatternList.getItem(idx()).get("text");
+  }
 }
 
 // Class that hexdumps received MIDI messages.
@@ -246,6 +304,8 @@ class MidiDumper {
 ControlP5 cp5;
 // Parameter input sliders.
 Sliders sliders;
+// Pattern selector.
+PatternPicker patternPicker;
 // MIDI buses:
 MidiBus midiClockBus;
 MidiBus midiInputBus;
@@ -260,7 +320,7 @@ MidiDumper midiDumper = new MidiDumper();
 
 void setup() {
   colorMode(HSB, 255);
-  size(800, 600);
+  size(1000, 600);
 
   cp5 = new ControlP5(this);
 
@@ -285,13 +345,15 @@ void setup() {
 
   sliders = new Sliders(cp5, PARAMETER_KNOB_MIDI_ADDRESSES);
 
+  patternPicker = new PatternPicker(cp5, 5, 5, 200, height - 100);
+
   midiClockBus.addMidiListener(bpmSource.clockListener);
   midiInputBus.addMidiListener(bpmSource.tapListener);
   midiInputBus.addMidiListener(sliders.midiListener);
 
   serialControl = new SerialControl(this, SERIAL_PORT, SERIAL_BAUD);
 
-  Placer placer = new Placer(width - 175, height - 50, JELLY_RADIUS);
+  Placer placer = new Placer(205, 5, width - 175, height - 50, JELLY_RADIUS);
   jellies = new Jelly[JELLIES];
   for (int i = 0; i < JELLIES; i++) {
     if (!placer.placeNext()) {
@@ -302,7 +364,7 @@ void setup() {
 
   frameRate(50);
 
-  nextVisualizer(0);
+  patternPicker.nextVisualizer(0);
 }
 
 // Handle keypresses.
@@ -314,12 +376,15 @@ void keyPressed() {
   } else if (key == '.') {
     bpmSource.adjustBpm(-0.25);
   } else if (keyCode == UP) {
-    nextVisualizer(1);
+    patternPicker.nextVisualizer(-1);
   } else if (keyCode == DOWN) {
-    nextVisualizer(-1);
+    patternPicker.nextVisualizer(1);
   } else {
     // XXX: make periodic and on changes.
-    serialControl.sendPacket(bpmSource.bpm, bpmSource.offset);
+    int[] parameters = sliders.values.clone();
+    int globalBrightness = sliders.values[sliders.CHANNELS - 1];
+    int pattern = patternPicker.idx(); // XXX: only if defined.
+    serialControl.sendPacket(bpmSource.bpm, bpmSource.offset, parameters, globalBrightness, pattern);
   }
 }
 
@@ -334,7 +399,7 @@ void drawStatus(BeatData bd) {
   String status = "BPM: " + nf(bpmSource.bpm, 3, 1);
   status += " measure: " + bd.measure;
   status += " beat: " + bd.beatInMeasure;
-  status += " visualizer: " + visualizerName;
+  status += " visualizer: " + patternPicker.name();
   status += " beat ticks: " + bd.beatTicks + "/" + bd.beatInterval;
   status += " fps: " + nf(frameRate, 3, 1);
   text(status, 10, height - 20);
