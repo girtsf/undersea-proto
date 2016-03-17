@@ -29,6 +29,8 @@ final static int SERIAL_BAUD = 115200;
 
 
 Class[] visualizers = {
+  SpinVisualizer.class,
+  OscillateVisualizer.class,
   Swimming2Visualizer.class,
   SwimmingVisualizer.class,
   FadeToBlueVisualizer.class,
