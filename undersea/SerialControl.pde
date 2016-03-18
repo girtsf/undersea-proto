@@ -17,6 +17,10 @@ class SerialControl {
       println("opening serial failed: " + ex);
     }
   }
+  
+  boolean isConnected() {
+    return serial != null;
+  }
 
   // Escapes and sends a packet.
   void escapeAndSend(final byte[] b) {

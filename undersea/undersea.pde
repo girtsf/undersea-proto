@@ -295,6 +295,9 @@ void setup() {
 
   serialControl = new SerialControl(this, SERIAL_PORT, SERIAL_BAUD);
 
+  // Hide sim by default if serial is connected.
+  patternPicker.setShowSim(!serialControl.isConnected());
+
   Placer placer = new Placer(205, 5, width - 175, height - 50, JELLY_RADIUS);
   jellies = new Jelly[JELLIES];
   for (int i = 0; i < JELLIES; i++) {
@@ -326,7 +329,6 @@ void sendRadioPacket() {
   radioPacketPending = false;
   lastRadioPacket = now;
   packetsSent++;
-  int[] parameters = sliders.values.clone();
   int globalBrightness = sliders.globalBrightness();
   int pattern = patternPicker.patternNum();
   if (pattern >= 0) {
@@ -401,9 +403,12 @@ void draw() {
   background(0);
 
   bpmSource.updateTime();
-  // Jellies. Yum.
-  for (Jelly j : jellies) {
-    j.draw();
+
+  if (patternPicker.showSim()) {
+    // Jellies. Yum.
+    for (Jelly j : jellies) {
+      j.draw();
+    }
   }
   // Status text and beat indicator.
   BeatData bd = bpmSource.buildBeatData(sliders.values);
@@ -412,6 +417,7 @@ void draw() {
 
   // See if we need to send a radio packet.
   maybeSendRadioPacket();
+  patternPicker.maybeAutoSwitch();
 }
 
 void serialEvent(Serial p) {
