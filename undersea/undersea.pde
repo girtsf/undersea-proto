@@ -200,7 +200,20 @@ String getPatternNameFromClass(Class visClass) {
   return name;
 }
 
+// Saved values for sliders.
+Map<Integer, int[]> visualizerValues = new HashMap<Integer, int[]>();
+
 void setVisualizer(Class visClass) {
+  // See if we have saved values.
+  int idx = patternPicker.idx(); 
+  int[] values = null;
+  if (visualizerValues.containsKey(idx)) {
+    println("got saved values for " + idx);
+    values = visualizerValues.get(idx);
+  } else {
+    println("did not get saved values for " + idx);
+  }
+
   for (Jelly j : jellies) {
     Visualizer v = null;
     try {
@@ -209,7 +222,11 @@ void setVisualizer(Class visClass) {
       java.lang.reflect.Constructor c = visClass.getDeclaredConstructor(Class.forName("undersea"));
       v = (Visualizer)c.newInstance(this);
       sliders.setNames(addGlobalBrightnessLabel(v.getParameterLabels()));
-      sliders.setValues(v.getParameterDefaults());
+      if (values != null) {
+        sliders.setValues(values);
+      } else {
+        sliders.setValues(v.getParameterDefaults());
+      }
     }
     catch (Exception ex) {
       println("bleh");
@@ -284,7 +301,14 @@ void setup() {
   bpmSource = new BpmSource(cp5, width - 170, 10, BPM_TAP_NOTE);
 
   sliders = new Sliders(cp5, PARAMETER_KNOB_MIDI_ADDRESSES, width - 170, 70);
-  sliders.setChangeCallback(sendRadioPacketRunnable);
+  sliders.setChangeCallback(new Runnable() {
+    public void run() {
+      println("saving values for " + patternPicker.idx());
+      visualizerValues.put(patternPicker.idx(), sliders.values.clone());
+      sendRadioPacket();
+    }
+  }
+  );
 
   patternPicker = new PatternPicker(cp5, 5, 5, 200, height - 100);
   patternPicker.setChangeCallback(sendRadioPacketRunnable);
