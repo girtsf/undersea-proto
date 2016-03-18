@@ -37,17 +37,19 @@ final static int MAX_PACKET_INTERVAL_MS = 200;
 
 // Add the visualizers/patterns here.
 static final Class[] VISUALIZERS = {
+  FadeToBlueVisualizer.class,
+  FlashVisualizer.class, 
+  HueRotateVisualizer.class, 
+  OscillateVisualizer.class,
+  PrimeVisualizer.class, 
+  PulseVisualizer.class, 
+  RandomVisualizer.class, 
+  ScannerVisualizer.class, 
+  SingleColorVisualizer.class, 
+  SlowColorFadeVisualizer.class, 
+  SpinVisualizer.class,
   Swimming2Visualizer.class, 
   SwimmingVisualizer.class, 
-  FadeToBlueVisualizer.class, 
-  PulseVisualizer.class, 
-  HueRotateVisualizer.class, 
-  SingleColorVisualizer.class, 
-  RandomVisualizer.class, 
-  FlashVisualizer.class, 
-  PrimeVisualizer.class, 
-  SlowColorFadeVisualizer.class, 
-  ScannerVisualizer.class, 
   // add new visualizers here
 };
 
