@@ -37,17 +37,17 @@ final static int MAX_PACKET_INTERVAL_MS = 200;
 
 // Add the visualizers/patterns here.
 static final Class[] VISUALIZERS = {
-  FadeToBlueVisualizer.class,
+  FadeToBlueVisualizer.class, 
   FlashVisualizer.class, 
   HueRotateVisualizer.class, 
-  OscillateVisualizer.class,
+  OscillateVisualizer.class, 
   PrimeVisualizer.class, 
   PulseVisualizer.class, 
   RandomVisualizer.class, 
   ScannerVisualizer.class, 
   SingleColorVisualizer.class, 
   SlowColorFadeVisualizer.class, 
-  SpinVisualizer.class,
+  SpinVisualizer.class, 
   Swimming2Visualizer.class, 
   SwimmingVisualizer.class, 
   // add new visualizers here
@@ -210,10 +210,7 @@ void setVisualizer(Class visClass) {
   int idx = patternPicker.idx(); 
   int[] values = null;
   if (visualizerValues.containsKey(idx)) {
-    println("got saved values for " + idx);
     values = visualizerValues.get(idx);
-  } else {
-    println("did not get saved values for " + idx);
   }
 
   for (Jelly j : jellies) {
@@ -305,7 +302,6 @@ void setup() {
   sliders = new Sliders(cp5, PARAMETER_KNOB_MIDI_ADDRESSES, width - 170, 70);
   sliders.setChangeCallback(new Runnable() {
     public void run() {
-      println("saving values for " + patternPicker.idx());
       visualizerValues.put(patternPicker.idx(), sliders.values.clone());
       sendRadioPacket();
     }

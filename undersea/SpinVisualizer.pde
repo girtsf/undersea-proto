@@ -61,6 +61,11 @@ class SpinVisualizer extends Visualizer {
     String[] s = {"r-spd", "g-spd", "b-spd"};
     return s;
   }
+ 
+  int[] getParameterDefaults() {
+    int[] r = {120, 135, 120};
+    return r;
+  }
 
   void process(BeatData bd) {
     // failsafe:
