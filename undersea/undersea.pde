@@ -37,9 +37,9 @@ final static int MAX_PACKET_INTERVAL_MS = 200;
 
 // Add the visualizers/patterns here.
 static final Class[] VISUALIZERS = {
-  Swimming2Visualizer.class,
-  SwimmingVisualizer.class,
-  FadeToBlueVisualizer.class,
+  Swimming2Visualizer.class, 
+  SwimmingVisualizer.class, 
+  FadeToBlueVisualizer.class, 
   PulseVisualizer.class, 
   HueRotateVisualizer.class, 
   SingleColorVisualizer.class, 
@@ -220,78 +220,6 @@ void setVisualizer(Class visClass) {
   }
 }
 
-class PatternPicker {
-  ScrollableList mPatternList;
-  Runnable mCallback;
-
-  PatternPicker(ControlP5 cp5, int x, int y, int width, int height) {
-    mPatternList = cp5
-      .addScrollableList("pattern")
-      .setPosition(x, y)
-      .setSize(width, height)
-      .setType(ControlP5.LIST)
-      //.setBarVisible(false)
-      .setItemHeight(30);
-      
-    for (int i = 0; i < VISUALIZERS.length; i++) {
-      Class c = VISUALIZERS[i];
-      String n = getPatternNameFromClass(c);
-      Integer pat = PATTERN_INDICES.get(n);
-      if (pat == null) pat = -1;
-      String label = "[" + i + "] " + n;
-      mPatternList.addItem(label, Integer.valueOf(pat));
-      if (pat < 0) {
-        // Pattern that is not yet implemented on the jelly.
-        CColor col = new CColor();
-        col.setBackground(#555555);     
-        mPatternList.getItem(i).put("color", col);
-      }
-    }
-    mPatternList.addListener(changeListener);
-  }
-
-  ControlListener changeListener = new ControlListener() {
-    public void controlEvent(ControlEvent theEvent) {
-      switchVisualizer();
-    }
-  };
-
-  void setChangeCallback(Runnable c) {
-    mCallback = c;
-  }
-
-  // Picks next visualizer in the given direction (1: next, -1: prev).
-  void nextVisualizer(int dir) {
-    int visualizerIdx = idx() + dir;
-    if (visualizerIdx < 0) {
-      visualizerIdx = VISUALIZERS.length - 1;
-    }
-    if (visualizerIdx >= VISUALIZERS.length) {
-      visualizerIdx = 0;
-    }
-    mPatternList.setValue(visualizerIdx);
-    switchVisualizer();
-  }
-
-  void switchVisualizer() {
-    Class v = VISUALIZERS[idx()];
-    setVisualizer(v);
-    if (mCallback != null) mCallback.run();
-  }
-
-  int idx() {
-    return (int) mPatternList.getValue();
-  }
-  
-  int patternNum() {
-    return (int) mPatternList.getItem(idx()).get("value");
-  }
-
-  String name() {
-    return (String) mPatternList.getItem(idx()).get("text");
-  }
-}
-
 // Class that hexdumps received MIDI messages.
 class MidiDumper {
   LinkedList<StandardMidiListener> listeners = new LinkedList<StandardMidiListener>();
@@ -325,8 +253,6 @@ MidiBus midiClockBus;
 MidiBus midiInputBus;
 // MIDI / keyboard BPM source.
 BpmSource bpmSource;
-// BPM toggle.
-Toggle bpmToggle;
 // Class to send messages across serial port.
 SerialControl serialControl;
 
@@ -359,7 +285,7 @@ void setup() {
 
   sliders = new Sliders(cp5, PARAMETER_KNOB_MIDI_ADDRESSES, width - 170, 70);
   sliders.setChangeCallback(sendRadioPacketRunnable);
-  
+
   patternPicker = new PatternPicker(cp5, 5, 5, 200, height - 100);
   patternPicker.setChangeCallback(sendRadioPacketRunnable);
 
@@ -394,9 +320,9 @@ void sendRadioPacket() {
     radioPacketPending = true;
     return;
   }
-  
+
   bpmSource.updateTime();
-  
+
   radioPacketPending = false;
   lastRadioPacket = now;
   packetsSent++;
@@ -473,7 +399,7 @@ void drawBeatIndicator(BeatData bd, int x, int y, int radius) {
 void draw() {
   // Clear the display.
   background(0);
-  
+
   bpmSource.updateTime();
   // Jellies. Yum.
   for (Jelly j : jellies) {

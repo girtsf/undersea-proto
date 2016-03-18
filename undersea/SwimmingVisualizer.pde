@@ -1,8 +1,6 @@
 // This is a pulse visualizer that never allows the umbrella to go
 // dark -- we swell into some color and then gradually fade to
 // deep-ocean blue.
-//
-// Idea: rpearl.
 
 class SwimmingVisualizer extends Visualizer {
   // Value of previous beat seen. Used to detect start of new beat period.
