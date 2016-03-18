@@ -65,6 +65,9 @@ static {
   PATTERN_INDICES.put("HueRotate", 0);
   PATTERN_INDICES.put("SingleColor", 1);
   PATTERN_INDICES.put("Swimming", 2);
+  PATTERN_INDICES.put("Flash", 3);
+  PATTERN_INDICES.put("FadeToBlue", 4);
+  PATTERN_INDICES.put("Oscillate", 5);
 }
 
 // Represents a single pixel.
