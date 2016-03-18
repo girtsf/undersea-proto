@@ -17,7 +17,10 @@ static final byte BPM_TAP_NOTE = (byte) 0x24;
 // MIDI clock device name.
 static final String MIDI_CLOCK_DEVICE = "simple core midi source";
 // MIDI input device name.
-static final String MIDI_INPUT_DEVICE = "Oxygen 49";
+// mac:
+// static final String MIDI_INPUT_DEVICE = "Oxygen 49";
+// linux:
+static final String MIDI_INPUT_DEVICE = "O49 [hw:1,0,0]";
 // Whether to show all MIDI input messages.
 static final boolean MIDI_DEBUG = true;
 // Addresses for the first eight sliders on the Oxygen 49 keyboard + MOD wheel.
@@ -25,9 +28,12 @@ static final byte[] PARAMETER_KNOB_MIDI_ADDRESSES = {0x14, 0x15, 0x47, 0x48, 0x1
 
 // Serial port config.
 // FTDI:
-final static String SERIAL_PORT = "/dev/tty.usbserial-AI02BBCZ";
+// final static String SERIAL_PORT = "/dev/tty.usbserial-AI02BBCZ";
 // dev-kit:
 // final static String SERIAL_PORT = "/dev/tty.usbmodem44";
+// ftdi on Linux:
+final static String SERIAL_PORT = "/dev/ttyUSB0";
+
 final static int SERIAL_BAUD = 115200;
 
 // Don't send packets more frequently than this.
@@ -343,6 +349,7 @@ void sendRadioPacket() {
   int now = millis();
   int diff = now - lastRadioPacket;
   if (diff < MIN_PACKET_INTERVAL_MS) {
+    // println("skipping sending packet");
     radioPacketPending = true;
     return;
   }

@@ -22,6 +22,7 @@ class Sliders {
       final int idx = i;
       s.addListener(new ControlListener() {
         public void controlEvent(ControlEvent theEvent) {
+          // println("slider changed " + theEvent.getName());
           values[idx] = (int)s.getValue();
           if (callback != null) callback.run();
         }
