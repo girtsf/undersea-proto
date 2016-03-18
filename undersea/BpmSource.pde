@@ -49,8 +49,8 @@ class BpmSource {
       void controlEvent(ControlEvent theEvent) {
         try {
           bpm = Float.parseFloat(bpmField.getText());
-          if (bpm < 40) bpm = 40;
-          if (bpm > 400) bpm = 400;
+          if (bpm < 10) bpm = 10;
+          if (bpm > 999) bpm = 999;
         } 
         catch (NumberFormatException ex) {
           println("can't parse BPM");
@@ -73,7 +73,6 @@ class BpmSource {
     );
     this.bpmTapNote = bpmTapNote;
   }
-
 
   int beatInterval() {
     return int(32767.0 / (bpm / 60));

@@ -25,15 +25,15 @@ static final byte[] PARAMETER_KNOB_MIDI_ADDRESSES = {0x14, 0x15, 0x47, 0x48, 0x1
 
 // Serial port config.
 // FTDI:
-// final static String SERIAL_PORT = "/dev/tty.usbserial-AI02BBCZ";
+final static String SERIAL_PORT = "/dev/tty.usbserial-AI02BBCZ";
 // dev-kit:
-final static String SERIAL_PORT = "/dev/tty.usbmodem44";
+// final static String SERIAL_PORT = "/dev/tty.usbmodem44";
 final static int SERIAL_BAUD = 115200;
 
 // Don't send packets more frequently than this.
 final static int MIN_PACKET_INTERVAL_MS = 20;  // 50 packets/s
 // Don't send packets less frequently than this.
-final static int MAX_PACKET_INTERVAL_MS = 200;
+final static int MAX_PACKET_INTERVAL_MS = 1000;
 
 // Add the visualizers/patterns here.
 static final Class[] VISUALIZERS = {
@@ -58,6 +58,7 @@ static final HashMap<String, Integer> PATTERN_INDICES = new HashMap<String, Inte
 static {
   PATTERN_INDICES.put("HueRotate", 0);
   PATTERN_INDICES.put("SingleColor", 1);
+  PATTERN_INDICES.put("Swimming", 2);
 }
 
 // Represents a single pixel.

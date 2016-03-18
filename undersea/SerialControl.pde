@@ -17,7 +17,7 @@ class SerialControl {
       println("opening serial failed: " + ex);
     }
   }
-  
+
   boolean isConnected() {
     return serial != null;
   }
@@ -67,28 +67,31 @@ class SerialControl {
     p.setUint64(4, bd.ticks); 
     p.setUint8(12, bd.beatsPerMeasure);
     p.setUint8(13, bd.beatInMeasure);
-    p.setUint16(14, bd.beatInterval);
-    p.setUint16(16, bd.beatTicks);
-    p.setUint32(18, bd.measure);
-    p.setUint32(22, bd.beats);
-    p.setUint32(26, bd.ticks);
-
+    p.setUint32(14, bd.beatInterval);
+    p.setUint32(18, bd.beatTicks);
+    p.setUint32(22, bd.measure);
+    p.setUint32(26, bd.beats);
+    p.setUint32(30, bd.ticks);
     for (int i = 0; i < 8; i++) {
-      p.setUint8(30 + i, bd.parameters[i]);
+      p.setUint8(34 + i, bd.parameters[i]);
     }
-    p.setUint8(38, globalBrightness);
-    p.setUint8(39, pattern);
+    p.setUint8(42, globalBrightness);
+    p.setUint8(43, pattern);
 
     escapeAndSend(p.bytes);
+  }
+
+  void hexdump(byte[] bytes) {
+    for (byte b : bytes) {
+      print(String.format("%02x ", b));
+    }
+    println("");
   }
 
   void handleSerialEvent() {
     byte[] bytes = serial.readBytes();
     print("serial (" + bytes.length + "): ");
-    for (byte b : bytes) {
-      print(String.format("%02x ", b));
-    }
-    println("");
+    hexdump(bytes);
   }
 }
 
@@ -115,14 +118,15 @@ class Packet {
   void setUint64(int pos, long value) {
     assert(value >= 0);
     for (int i = 0; i < 8; i++) {
-      bytes[pos + 1] = (byte)((value >> (i*8)) & 0xff);
+      bytes[pos + i] = (byte)((value >> (i*8)) & 0xff);
     }
   }
-  
+
   void setUint32(int pos, long value) {
     assert(value >= 0);
-    for (int i = 0; i < 4; i++) {
-      bytes[pos + 1] = (byte)((value >> (i*8)) & 0xff);
+    for (int i = 0; i < 4; i++) { //<>//
+      byte b = (byte)((value >> (i*8)) & 0xff);
+      bytes[pos + i] = b;
     }
   }
 }

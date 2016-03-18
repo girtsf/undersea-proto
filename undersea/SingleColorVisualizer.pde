@@ -8,6 +8,12 @@ class SingleColorVisualizer extends Visualizer {
     String[] s = {"red", "green", "blue"};
     return s;
   }
+ 
+  int[] getParameterDefaults() {
+    int[] r = {0, 0, 35};
+    return r;
+  }
+  
   void process(BeatData bd) {
     // By default, visualizers will use HSB, but we use RGB for this one.
     colorMode(RGB, 255);
