@@ -2,10 +2,6 @@
 // Node count parameter controls how many nodes there are total.
 
 class ScannerVisualizer extends Visualizer {
-  int mPrevBeat = 0;
-
-  int[] PRIMES = {2, 3, 5, 7, 11};
-
   String[] getParameterLabels() {
     String[] s = {"node count"};
     return s;
@@ -17,7 +13,7 @@ class ScannerVisualizer extends Visualizer {
   }
 
   void process(BeatData bd) {
-    int quarterBeats = (int)(bd.ticks / (bd.beatInterval / 4));
+    int quarterBeats = 4 * bd.beats + (int)(4 * bd.beatTicks / bd.beatInterval);
     int nodeCount = bd.parameters[0];
     color c = #000000;  // black
     if (nodeCount == 0) nodeCount = 1;

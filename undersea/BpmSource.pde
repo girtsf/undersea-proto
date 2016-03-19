@@ -125,8 +125,10 @@ class BpmSource {
     if (count > 1) {
       int delta = now - clockTimings.getFirst();
       float beatPeriod = (float)(delta) * (MESSAGES_PER_BEAT + 1) / 1000.0 / count;
+      float newBpm = 60.0 / beatPeriod;
+      float gradual = bpm + (newBpm - bpm) * 0.05;
       // println("now: ", now, " delta: ", delta, " beatPeriod: ", beatPeriod);
-      setBpm(60.0 / beatPeriod);
+      setBpm(gradual);
     } else {
       setBpm(120.0);
     }

@@ -69,6 +69,8 @@ static {
   PATTERN_INDICES.put("FadeToBlue", 4);
   PATTERN_INDICES.put("Oscillate", 5);
   PATTERN_INDICES.put("Pulse", 6);
+  PATTERN_INDICES.put("Scanner", 7);
+  PATTERN_INDICES.put("Random", 8);
 }
 
 // Represents a single pixel.
