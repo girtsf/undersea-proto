@@ -2,12 +2,24 @@
 class FlashVisualizer extends Visualizer {
   int mPrevBeat = 0;
   long next_tick = 0;
+  
+   // Return the labels for the visualizer. This will enable three sliders.
+  String[] getParameterLabels() {
+    String[] s = {"red", "green", "blue"};
+    return s;
+  }
+ 
+  int[] getParameterDefaults() {
+    int[] r = {50, 50, 50};
+    return r;
+  }
 
   void process(BeatData bd) {
     color c;
     if (mPrevBeat != bd.beatInMeasure) {
       // We haven't seen this beat yet. Flash!
-      c = #ffffff;  // white
+      colorMode(RGB, 255);
+      c = color(bd.parameters[0], bd.parameters[1], bd.parameters[2]);
       next_tick = bd.ticks;
     } else {
       c = pixels[0];

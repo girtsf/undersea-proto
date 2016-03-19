@@ -111,29 +111,39 @@ class Packet {
   Packet(int size) {
     bytes = new byte[size];
   }
+  
+  int cap(int value, int min, int max) {
+    if (value < min) {
+      println("err: value " + value + " < " + min);
+      value = min;
+    }
+    if (value > max) {
+      println("err: value " + value + " > " + max);
+      value = max;
+    }
+    return value;
+  }
 
   void setUint16(int pos, int value) {
-    assert(value >= 0);
-    assert(value <= 65535);
+    value = cap(value, 0, 65535);
     bytes[pos] = (byte)(value & 0xff);
     bytes[pos + 1] = (byte)((value >> 8) & 0xff);
   }
 
   void setUint8(int pos, int value) {
-    assert(value >= 0);
-    assert(value <= 65535);
+    value = cap(value, 0, 255);
     bytes[pos] = (byte)(value & 0xff);
   }
 
   void setUint64(int pos, long value) {
-    assert(value >= 0);
+    if (value < 0) value = 0;
     for (int i = 0; i < 8; i++) {
       bytes[pos + i] = (byte)((value >> (i*8)) & 0xff);
     }
   }
 
   void setUint32(int pos, long value) {
-    assert(value >= 0);
+    if (value < 0) value = 0;
     for (int i = 0; i < 4; i++) {
       byte b = (byte)((value >> (i*8)) & 0xff);
       bytes[pos + i] = b;

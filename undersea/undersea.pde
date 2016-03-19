@@ -15,7 +15,7 @@ static final int JELLY_RADIUS = 70;
 // MIDI note to use for BPM tap / downbeat sync.
 static final byte BPM_TAP_NOTE = (byte) 0x24;
 // MIDI clock device name.
-static final String MIDI_CLOCK_DEVICE = "CH345 [hw:2,0,0]"; // "simple core midi source";
+static final String MIDI_CLOCK_DEVICE = "UMONE [hw:2,0,0]"; // "simple core midi source";
 // MIDI input device name.
 // mac:
 // static final String MIDI_INPUT_DEVICE = "Oxygen 49";
@@ -47,15 +47,16 @@ static final Class[] VISUALIZERS = {
   FlashVisualizer.class, 
   HueRotateVisualizer.class, 
   OscillateVisualizer.class, 
-  PrimeVisualizer.class, 
+  // PrimeVisualizer.class, 
   PulseVisualizer.class, 
   RandomVisualizer.class, 
   ScannerVisualizer.class, 
   SingleColorVisualizer.class, 
-  SlowColorFadeVisualizer.class, 
+  // SlowColorFadeVisualizer.class, 
   SpinVisualizer.class, 
-  Swimming2Visualizer.class, 
+  // Swimming2Visualizer.class, 
   SwimmingVisualizer.class, 
+  DirectPatternVisualizer.class,
   // add new visualizers here
 };
 
@@ -71,6 +72,8 @@ static {
   PATTERN_INDICES.put("Pulse", 6);
   PATTERN_INDICES.put("Scanner", 7);
   PATTERN_INDICES.put("Random", 8);
+  PATTERN_INDICES.put("Spin", 9);
+  PATTERN_INDICES.put("DirectPattern", 10);
 }
 
 // Represents a single pixel.
@@ -289,7 +292,7 @@ MidiDumper midiDumper = new MidiDumper();
 
 void setup() {
   colorMode(HSB, 255);
-  size(1000, 600);
+  size(1100, 600);
 
   cp5 = new ControlP5(this);
 
@@ -310,9 +313,9 @@ void setup() {
     midiInputBus.addMidiListener(m);
   }
 
-  bpmSource = new BpmSource(cp5, width - 170, 10, BPM_TAP_NOTE);
+  bpmSource = new BpmSource(cp5, width - 270, 10, BPM_TAP_NOTE);
 
-  sliders = new Sliders(cp5, PARAMETER_KNOB_MIDI_ADDRESSES, width - 170, 70);
+  sliders = new Sliders(cp5, PARAMETER_KNOB_MIDI_ADDRESSES, width - 270, 70);
   sliders.setChangeCallback(new Runnable() {
     public void run() {
       visualizerValues.put(patternPicker.idx(), sliders.values.clone());
@@ -333,7 +336,7 @@ void setup() {
   // Hide sim by default if serial is connected.
   patternPicker.setShowSim(!serialControl.isConnected());
 
-  Placer placer = new Placer(205, 5, width - 175, height - 50, JELLY_RADIUS);
+  Placer placer = new Placer(205, 5, width - 275, height - 50, JELLY_RADIUS);
   jellies = new Jelly[JELLIES];
   for (int i = 0; i < JELLIES; i++) {
     if (!placer.placeNext()) {

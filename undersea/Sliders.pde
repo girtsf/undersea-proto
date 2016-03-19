@@ -17,7 +17,7 @@ class Sliders {
     for (int i = 0; i < CHANNELS; i++) {
       int value = 255;
       values[i] = value;
-      final Slider s = cp5.addSlider("" + i).setPosition(x, y + 35 * i).setRange(0, 255).setSize(90, 30).setValue(value);
+      final Slider s = cp5.addSlider("" + i).setPosition(x, y + 35 * i).setRange(0, 255).setSize(190, 30).setValue(value);
       sliders[i] = s;
       final int idx = i;
       s.addListener(new ControlListener() {
