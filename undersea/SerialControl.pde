@@ -58,6 +58,14 @@ class SerialControl {
     serial.write(outReal);
   }
 
+  void sendResetPacket() {
+    Packet p = new Packet(64);
+    p.setUint16(0, 0x13d);  // magic
+    p.setUint16(2, 1);  // version
+    p.setUint16(3, 2);  // command=reset
+    escapeAndSend(p.bytes);
+  }
+
   void sendPacket(BeatData bd, int globalBrightness, int pattern) {
     Packet p = new Packet(64);
     p.setUint16(0, 0x13d);  // magic
@@ -71,7 +79,7 @@ class SerialControl {
     p.setUint32(22, bd.measure);
     p.setUint32(26, bd.beats);
     p.setUint32(30, bd.ticks);
-   for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 8; i++) {
       p.setUint8(34 + i, bd.parameters[i]);
     }
     p.setUint8(42, globalBrightness);

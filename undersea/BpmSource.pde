@@ -124,7 +124,7 @@ class BpmSource {
     int count = clockTimings.size();
     if (count > 1) {
       int delta = now - clockTimings.getFirst();
-      float beatPeriod = (float)(delta) * MESSAGES_PER_BEAT / 1000.0 / count;
+      float beatPeriod = (float)(delta) * (MESSAGES_PER_BEAT + 1) / 1000.0 / count;
       // println("now: ", now, " delta: ", delta, " beatPeriod: ", beatPeriod);
       setBpm(60.0 / beatPeriod);
     } else {
@@ -143,6 +143,15 @@ class BpmSource {
   }
 
   void handleBpmTap() {
+    // Don't allow setting BPM when running on MIDI clock, set only downbeat.
+    if (clockFromMidi) {
+      beatTicks = 0;
+      beats++;
+      while ((beats % beatsPerMeasure) != 0) {
+        beats++;
+      }
+      return;
+    }   
     int now = millis();
 
     if ((lastTap == 0) || ((now - lastTap) > 2000)) {
@@ -157,14 +166,7 @@ class BpmSource {
         beats++;
       }
     } else {
-      // Don't allow setting BPM when running on MIDI clock.
-      if (!clockFromMidi) {
-        tapCount++;
-      } else {
-        tapCount = 0;
-        lastTap = 0;
-        return;
-      }
+      tapCount++;
     }
 
     if (tapCount > 1) {

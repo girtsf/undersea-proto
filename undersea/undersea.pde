@@ -15,7 +15,7 @@ static final int JELLY_RADIUS = 70;
 // MIDI note to use for BPM tap / downbeat sync.
 static final byte BPM_TAP_NOTE = (byte) 0x24;
 // MIDI clock device name.
-static final String MIDI_CLOCK_DEVICE = "simple core midi source";
+static final String MIDI_CLOCK_DEVICE = "CH345 [hw:2,0,0]"; // "simple core midi source";
 // MIDI input device name.
 // mac:
 // static final String MIDI_INPUT_DEVICE = "Oxygen 49";
@@ -68,6 +68,7 @@ static {
   PATTERN_INDICES.put("Flash", 3);
   PATTERN_INDICES.put("FadeToBlue", 4);
   PATTERN_INDICES.put("Oscillate", 5);
+  PATTERN_INDICES.put("Pulse", 6);
 }
 
 // Represents a single pixel.
@@ -395,6 +396,9 @@ void keyPressed() {
     patternPicker.nextVisualizer(-1);
   } else if (keyCode == DOWN) {
     patternPicker.nextVisualizer(1);
+  } else if (key == 'R') {
+    println("sending reset");
+    serialControl.sendResetPacket();
   }
 }
 
@@ -403,7 +407,7 @@ void drawStatus(BeatData bd) {
   textSize(14);
 
   fill(0, 0, 255);
-  text("[SPACE] tap for bpm [,.] bpm up/down [↑↓] change visualizers", 10, height - 40);
+  text("[SPACE] tap for bpm [,.] bpm up/down [↑↓] change visualizers [shift+R] reset", 10, height - 40);
 
   fill(0, 255, 255);
   String status = "BPM: " + nf(bpmSource.bpm, 3, 1);
